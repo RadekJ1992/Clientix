@@ -74,7 +74,7 @@ namespace Clientix {
                     packet.VPI = 1;
                     packet.port = 1;
                     //
-                    log.AppendText("wysyłam pakiet!");
+                    log.AppendText("wysyłam pakiet!\n");
                     Stream stream = new NetworkStream(cloudSocket);
                     BinaryFormatter bformatter = new BinaryFormatter();
                     bformatter.Serialize(stream, packet);
