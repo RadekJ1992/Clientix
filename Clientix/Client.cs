@@ -15,18 +15,26 @@ using System.Windows.Forms;
 
 namespace Clientix {
 
-    public partial class Client : Form {
+    public partial class Clientix : Form {
 
         private struct VPIVCI {
             public int VPI;
             public int VCI;
         }
 
+        //fuck delegates!
+        delegate void SetTextCallback(string text);
+
         //otrzymany i wysyłany pakiets
         private Packet.ATMPacket receivedPacket;
+
         private Packet.ATMPacket processedPacket;
 
+        //kolejka pakietów stworzona z wysyłanej wiadomości
         private Queue<Packet.ATMPacket> packetsFromString;
+
+        //kolejka pakietów odebranych z chmury
+        private Queue<Packet.ATMPacket> queuedReceivedPackets = new Queue<Packet.ATMPacket>();
 
         //dane chmury
         private IPAddress cloudAddress;        //Adres na którym chmura nasłuchuje
@@ -45,11 +53,13 @@ namespace Clientix {
         private Thread receiveThread;     //wątek służący do odbierania połączeń
         private Thread sendThread;        // analogicznie - do wysyłania
 
+        private NetworkStream netStream;
+
         public bool isRunning { get; private set; }     //info czy klient chodzi - dla zarządcy
 
         public bool isConnectedToCloud { get; private set; } // czy połączony z chmurą?
         public bool isConnectedToManager { get; private set; } // czy połączony z zarządcą?
-        
+
         //unikalna nazwa klienta widziana przez zarządcę
         private String clientName;
 
@@ -57,9 +67,9 @@ namespace Clientix {
         private String[] otherClients;
 
         // tablica kierowania
-        private Dictionary<VPIVCI,VPIVCI> VCArray;
+        private Dictionary<VPIVCI, VPIVCI> VCArray;
 
-        public Client() {
+        public Clientix() {
             InitializeComponent();
         }
 
@@ -69,20 +79,21 @@ namespace Clientix {
                                                     " Not connected to cloud!");
             else {
                 foreach (Packet.ATMPacket packet in packetsFromString) {
+                    netStream = new NetworkStream(cloudSocket);
                     //:DLA_PRZYKŁADU
                     packet.VCI = 1;
                     packet.VPI = 1;
                     packet.port = 1;
                     //
                     log.AppendText("wysyłam pakiet!\n");
-                    Stream stream = new NetworkStream(cloudSocket);
                     BinaryFormatter bformatter = new BinaryFormatter();
-                    bformatter.Serialize(stream, packet);
-                    stream.Close();
+                    bformatter.Serialize(netStream, packet);
+                    netStream.Close();
+
                 }
             }
         }
-        
+
         private void connectToCloud(object sender, EventArgs e) {
             if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
                 log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Cloud IP set properly as " + cloudAddress.ToString() + " \n");
@@ -103,13 +114,16 @@ namespace Clientix {
             try {
                 cloudSocket.Connect(endPoint);
                 isConnectedToCloud = true;
-            } catch (SocketException ex) {
+                receiveThread = new Thread(this.receiver);
+                receiveThread.Start();
+            }
+            catch (SocketException ex) {
                 isConnectedToCloud = false;
                 log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Error while connecting to cloud\n");
-                log.AppendText(DateTime.Now.ToString("Wrong IP or port?\n"));
+                log.AppendText("Wrong IP or port?\n");
             }
         }
-        
+
         private void connectToManager(object sender, EventArgs e) {
             if (IPAddress.TryParse(managerIPField.Text, out managerAddress)) {
                 log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Manager IP set properly as " + managerAddress.ToString() + " \n");
@@ -123,6 +137,61 @@ namespace Clientix {
             else {
                 log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Error reading manager Port" + " \n");
             }
-        }       
+        }
+
+        private void receiver() {
+            NetworkStream networkStream = new NetworkStream(cloudSocket);
+            BinaryFormatter bf = new BinaryFormatter();
+            receivedPacket = (Packet.ATMPacket)bf.Deserialize(networkStream);
+            int tempSeq = 0;
+            int tempMid = 0;
+            // gdy wiadomość zawarta jest w jednym pakiecie
+            if (receivedPacket.PacketType == Packet.ATMPacket.AALType.SSM) {
+                SetText(Packet.AAL.getStringFromPacket(receivedPacket) + "\n");
+            }
+            else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.BOM) {
+                tempSeq = 0;
+                tempMid = receivedPacket.AALMid;
+                queuedReceivedPackets.Clear();
+                queuedReceivedPackets.Enqueue(receivedPacket);
+            }
+            else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.COM) {
+                if (receivedPacket.AALMid == tempMid) {
+                    //sprawdza kolejnosc AALSeq
+                    if (receivedPacket.AALSeq == ++tempSeq) {
+                        queuedReceivedPackets.Enqueue(receivedPacket);
+                    }
+                    else {
+                        SetText("Packet lost! :<");
+                    }
+                }
+                else {
+                    SetText("packet from another message (different AALMid)");
+                }
+            }
+            else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.EOM) {
+                queuedReceivedPackets.Enqueue(receivedPacket);
+                SetText(Packet.AAL.getStringFromPackets(queuedReceivedPackets));
+                queuedReceivedPackets.Clear();
+                tempSeq = 0;
+                tempMid = 0;
+            }
+            networkStream.Close();
+            receiver();
+        }
+
+        private void SetText(string text) {
+            // InvokeRequired required compares the thread ID of the 
+            // calling thread to the thread ID of the creating thread. 
+            // If these threads are different, it returns true. 
+            if (this.log.InvokeRequired) {
+                SetTextCallback d = new SetTextCallback(SetText);
+                this.Invoke(d, new object[] { text });
+            }
+            else {
+                this.log.AppendText(text);
+            }
+        }
+
     }
 }

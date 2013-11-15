@@ -1,5 +1,5 @@
 ﻿namespace Clientix {
-    partial class Client {
+    partial class Clientix {
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -147,6 +147,7 @@
             this.cloudIPField.Name = "cloudIPField";
             this.cloudIPField.Size = new System.Drawing.Size(100, 20);
             this.cloudIPField.TabIndex = 20;
+            this.cloudIPField.Text = "127.0.0.1";
             // 
             // managerIPField
             // 
@@ -161,6 +162,7 @@
             this.cloudPortField.Name = "cloudPortField";
             this.cloudPortField.Size = new System.Drawing.Size(100, 20);
             this.cloudPortField.TabIndex = 22;
+            this.cloudPortField.Text = "13000";
             // 
             // managerPortField
             // 
@@ -169,7 +171,7 @@
             this.managerPortField.Size = new System.Drawing.Size(100, 20);
             this.managerPortField.TabIndex = 23;
             // 
-            // Client
+            // Clientix
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -189,7 +191,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.enteredTextField);
-            this.Name = "Client";
+            this.Name = "Clientix";
             this.Text = "Client";
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -205,7 +207,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button connectToManagerButton;
-        private System.Windows.Forms.TextBox log;
+        private volatile System.Windows.Forms.TextBox log;
         private System.Windows.Forms.Button sendText;
         private System.Windows.Forms.CheckedListBox clientList;
         private System.Windows.Forms.Button connectToCloudButton;
