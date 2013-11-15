@@ -17,11 +17,6 @@ namespace Clientix {
 
     public partial class Clientix : Form {
 
-        private struct VPIVCI {
-            public int VPI;
-            public int VCI;
-        }
-
         //fuck delegates!
         delegate void SetTextCallback(string text);
 
@@ -66,9 +61,6 @@ namespace Clientix {
         //tablica innych węzłów klienckich podłączonych otrzymana do zarządcy
         private String[] otherClients;
 
-        // tablica kierowania
-        private Dictionary<VPIVCI, VPIVCI> VCArray;
-
         public Clientix() {
             InitializeComponent();
         }
@@ -110,9 +102,9 @@ namespace Clientix {
 
             cloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            IPEndPoint endPoint = new IPEndPoint(cloudAddress, cloudPort);
+            cloudEndPoint = new IPEndPoint(cloudAddress, cloudPort);
             try {
-                cloudSocket.Connect(endPoint);
+                cloudSocket.Connect(cloudEndPoint);
                 isConnectedToCloud = true;
                 receiveThread = new Thread(this.receiver);
                 receiveThread.Start();
@@ -137,6 +129,24 @@ namespace Clientix {
             else {
                 log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Error reading manager Port" + " \n");
             }
+
+            managerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            managerEndPoint = new IPEndPoint(managerAddress, managerPort);
+            try {
+                managerSocket.Connect(managerEndPoint);
+                isConnectedToManager = true;
+
+                //działanie AGENTA
+
+
+            }
+            catch (SocketException ex) {
+                isConnectedToManager = false;
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Error while connecting to manager\n");
+                log.AppendText("Wrong IP or port?\n");
+            }
+            
         }
 
         private void receiver() {
