@@ -88,16 +88,16 @@ namespace Clientix {
 
         private void connectToCloud(object sender, EventArgs e) {
             if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Cloud IP set properly as " + cloudAddress.ToString() + " \n");
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud IP set properly as " + cloudAddress.ToString() + " \n");
             }
             else {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Error reading cloud IP" + " \n");
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud IP" + " \n");
             }
             if (Int32.TryParse(cloudPortField.Text, out cloudPort)) {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Cloud port set properly as " + cloudPort.ToString() + " \n");
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud port set properly as " + cloudPort.ToString() + " \n");
             }
             else {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Error reading cloud Port" + " \n");
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud Port" + " \n");
             }
 
             cloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -111,23 +111,23 @@ namespace Clientix {
             }
             catch (SocketException ex) {
                 isConnectedToCloud = false;
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Error while connecting to cloud\n");
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to cloud\n");
                 log.AppendText("Wrong IP or port?\n");
             }
         }
 
         private void connectToManager(object sender, EventArgs e) {
             if (IPAddress.TryParse(managerIPField.Text, out managerAddress)) {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Manager IP set properly as " + managerAddress.ToString() + " \n");
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Manager IP set properly as " + managerAddress.ToString() + " \n");
             }
             else {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Error reading manager IP" + " \n");
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading manager IP" + " \n");
             }
             if (Int32.TryParse(managerPortField.Text, out managerPort)) {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Manager port set properly as " + managerPort.ToString() + " \n");
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Manager port set properly as " + managerPort.ToString() + " \n");
             }
             else {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Error reading manager Port" + " \n");
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading manager Port" + " \n");
             }
 
             managerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -143,7 +143,7 @@ namespace Clientix {
             }
             catch (SocketException ex) {
                 isConnectedToManager = false;
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " Error while connecting to manager\n");
+                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to manager\n");
                 log.AppendText("Wrong IP or port?\n");
             }
             
