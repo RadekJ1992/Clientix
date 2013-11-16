@@ -81,7 +81,7 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ClassLibrary1\ClassLibrary1\Packet.csproj">
+    <ProjectReference Include="..\..\Packet\ClassLibrary1\Packet.csproj">
       <Project>{7c42f514-ea47-44c9-ad87-8fafc77521dc}</Project>
       <Name>Packet</Name>
     </ProjectReference>
