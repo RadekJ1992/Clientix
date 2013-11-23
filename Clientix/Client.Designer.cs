@@ -192,7 +192,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.enteredTextField);
             this.Name = "Clientix";
-            this.Text = "Client";
+            this.Text = "Clientix";
             this.ResumeLayout(false);
             this.PerformLayout();
 

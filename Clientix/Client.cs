@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
@@ -150,43 +151,47 @@ namespace Clientix {
         }
 
         private void receiver() {
-            NetworkStream networkStream = new NetworkStream(cloudSocket);
-            BinaryFormatter bf = new BinaryFormatter();
-            receivedPacket = (Packet.ATMPacket)bf.Deserialize(networkStream);
-            int tempSeq = 0;
-            int tempMid = 0;
-            // gdy wiadomość zawarta jest w jednym pakiecie
-            if (receivedPacket.PacketType == Packet.ATMPacket.AALType.SSM) {
-                SetText(Packet.AAL.getStringFromPacket(receivedPacket) + "\n");
-            }
-            else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.BOM) {
-                tempSeq = 0;
-                tempMid = receivedPacket.AALMid;
-                queuedReceivedPackets.Clear();
-                queuedReceivedPackets.Enqueue(receivedPacket);
-            }
-            else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.COM) {
-                if (receivedPacket.AALMid == tempMid) {
-                    //sprawdza kolejnosc AALSeq
-                    if (receivedPacket.AALSeq == ++tempSeq) {
-                        queuedReceivedPackets.Enqueue(receivedPacket);
+            try {
+                NetworkStream networkStream = new NetworkStream(cloudSocket);
+                BinaryFormatter bf = new BinaryFormatter();
+                receivedPacket = (Packet.ATMPacket)bf.Deserialize(networkStream);
+                int tempSeq = 0;
+                int tempMid = 0;
+                // gdy wiadomość zawarta jest w jednym pakiecie
+                if (receivedPacket.PacketType == Packet.ATMPacket.AALType.SSM) {
+                    SetText(Packet.AAL.getStringFromPacket(receivedPacket) + "\n");
+               }
+                else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.BOM) {
+                    tempSeq = 0;
+                    tempMid = receivedPacket.AALMid;
+                    queuedReceivedPackets.Clear();
+                    queuedReceivedPackets.Enqueue(receivedPacket);
+                }
+                else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.COM) {
+                    if (receivedPacket.AALMid == tempMid) {
+                        //sprawdza kolejnosc AALSeq
+                        if (receivedPacket.AALSeq == ++tempSeq) {
+                            queuedReceivedPackets.Enqueue(receivedPacket);
+                        }
+                        else {
+                            SetText("Packet lost! :<");
+                        }
                     }
                     else {
-                        SetText("Packet lost! :<");
+                        SetText("packet from another message (different AALMid)");
                     }
                 }
-                else {
-                    SetText("packet from another message (different AALMid)");
+                else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.EOM) {
+                    queuedReceivedPackets.Enqueue(receivedPacket);
+                    SetText(Packet.AAL.getStringFromPackets(queuedReceivedPackets));
+                    queuedReceivedPackets.Clear();
+                    tempSeq = 0;
+                    tempMid = 0;
                 }
+                networkStream.Close();
+            } catch (SerializationException e) {
+                //gdy przyjdzie coś, czego nie da się zserializować - nie rób nic
             }
-            else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.EOM) {
-                queuedReceivedPackets.Enqueue(receivedPacket);
-                SetText(Packet.AAL.getStringFromPackets(queuedReceivedPackets));
-                queuedReceivedPackets.Clear();
-                tempSeq = 0;
-                tempMid = 0;
-            }
-            networkStream.Close();
             receiver();
         }
 
