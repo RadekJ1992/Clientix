@@ -103,7 +103,7 @@ namespace Clientix {
         private void sendMessage_KeyPress(object sender, KeyPressEventArgs e)
         {
             //jeśli naciśniesz enter; żeby to działało to wystarczy jeszcze tylko podlinkować zdażenie pod pole tekstowe (zrobione)
-            if (e.KeyChar.Equals((char)Keys.Enter)) sendMessage(sender, e);
+            if (sendText.Enabled && e.KeyChar.Equals((char)Keys.Enter)) sendMessage(sender, e);
         }
 
         private void connectToCloud(object sender, EventArgs e) {
