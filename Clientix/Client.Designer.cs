@@ -23,6 +23,7 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            this.components = new System.ComponentModel.Container();
             this.enteredTextField = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -31,13 +32,30 @@
             this.label5 = new System.Windows.Forms.Label();
             this.connectToManagerButton = new System.Windows.Forms.Button();
             this.log = new System.Windows.Forms.TextBox();
+            this.clientixBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.sendText = new System.Windows.Forms.Button();
-            this.clientList = new System.Windows.Forms.CheckedListBox();
             this.connectToCloudButton = new System.Windows.Forms.Button();
             this.cloudIPField = new System.Windows.Forms.TextBox();
             this.managerIPField = new System.Windows.Forms.TextBox();
             this.cloudPortField = new System.Windows.Forms.TextBox();
             this.managerPortField = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.usernameField = new System.Windows.Forms.TextBox();
+            this.setUsernameButton = new System.Windows.Forms.Button();
+            this.getOtherClients = new System.Windows.Forms.Button();
+            this.label6 = new System.Windows.Forms.Label();
+            this.connectWithClientButton = new System.Windows.Forms.Button();
+            this.disconnectWithClient = new System.Windows.Forms.Button();
+            this.selectedClientBox = new System.Windows.Forms.ComboBox();
+            this.clientixBindingSource3 = new System.Windows.Forms.BindingSource(this.components);
+            this.clientixBindingSource1 = new System.Windows.Forms.BindingSource(this.components);
+            this.clientixBindingSource2 = new System.Windows.Forms.BindingSource(this.components);
+            this.programBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.programBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // enteredTextField
@@ -77,7 +95,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(370, 182);
+            this.label4.Location = new System.Drawing.Point(476, 50);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(71, 13);
             this.label4.TabIndex = 8;
@@ -86,7 +104,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(368, 143);
+            this.label5.Location = new System.Drawing.Point(474, 11);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(62, 13);
             this.label5.TabIndex = 7;
@@ -94,7 +112,7 @@
             // 
             // connectToManagerButton
             // 
-            this.connectToManagerButton.Location = new System.Drawing.Point(371, 224);
+            this.connectToManagerButton.Location = new System.Drawing.Point(477, 92);
             this.connectToManagerButton.Name = "connectToManagerButton";
             this.connectToManagerButton.Size = new System.Drawing.Size(100, 44);
             this.connectToManagerButton.TabIndex = 11;
@@ -110,11 +128,12 @@
             this.log.Name = "log";
             this.log.ReadOnly = true;
             this.log.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.log.Size = new System.Drawing.Size(333, 176);
+            this.log.Size = new System.Drawing.Size(333, 185);
             this.log.TabIndex = 12;
             // 
             // sendText
             // 
+            this.sendText.Enabled = false;
             this.sendText.Location = new System.Drawing.Point(15, 51);
             this.sendText.Name = "sendText";
             this.sendText.Size = new System.Drawing.Size(333, 35);
@@ -122,14 +141,6 @@
             this.sendText.Text = "Wyślij tekst do zaznaczonego klienta";
             this.sendText.UseVisualStyleBackColor = true;
             this.sendText.Click += new System.EventHandler(this.sendMessage);
-            // 
-            // clientList
-            // 
-            this.clientList.FormattingEnabled = true;
-            this.clientList.Location = new System.Drawing.Point(482, 9);
-            this.clientList.Name = "clientList";
-            this.clientList.Size = new System.Drawing.Size(142, 259);
-            this.clientList.TabIndex = 14;
             // 
             // connectToCloudButton
             // 
@@ -143,7 +154,7 @@
             // 
             // cloudIPField
             // 
-            this.cloudIPField.Location = new System.Drawing.Point(371, 28);
+            this.cloudIPField.Location = new System.Drawing.Point(371, 25);
             this.cloudIPField.Name = "cloudIPField";
             this.cloudIPField.Size = new System.Drawing.Size(100, 20);
             this.cloudIPField.TabIndex = 20;
@@ -151,7 +162,7 @@
             // 
             // managerIPField
             // 
-            this.managerIPField.Location = new System.Drawing.Point(371, 159);
+            this.managerIPField.Location = new System.Drawing.Point(477, 27);
             this.managerIPField.Name = "managerIPField";
             this.managerIPField.Size = new System.Drawing.Size(100, 20);
             this.managerIPField.TabIndex = 21;
@@ -166,22 +177,106 @@
             // 
             // managerPortField
             // 
-            this.managerPortField.Location = new System.Drawing.Point(371, 198);
+            this.managerPortField.Location = new System.Drawing.Point(477, 66);
             this.managerPortField.Name = "managerPortField";
             this.managerPortField.Size = new System.Drawing.Size(100, 20);
             this.managerPortField.TabIndex = 23;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(368, 141);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(75, 13);
+            this.label7.TabIndex = 24;
+            this.label7.Text = "Nazwa Klienta";
+            // 
+            // usernameField
+            // 
+            this.usernameField.Location = new System.Drawing.Point(371, 157);
+            this.usernameField.Name = "usernameField";
+            this.usernameField.Size = new System.Drawing.Size(100, 20);
+            this.usernameField.TabIndex = 26;
+            // 
+            // setUsernameButton
+            // 
+            this.setUsernameButton.Location = new System.Drawing.Point(371, 183);
+            this.setUsernameButton.Name = "setUsernameButton";
+            this.setUsernameButton.Size = new System.Drawing.Size(100, 44);
+            this.setUsernameButton.TabIndex = 27;
+            this.setUsernameButton.Text = "Ustal nazwę klienta";
+            this.setUsernameButton.UseVisualStyleBackColor = true;
+            this.setUsernameButton.Click += new System.EventHandler(this.setUsernameButton_Click);
+            // 
+            // getOtherClients
+            // 
+            this.getOtherClients.Location = new System.Drawing.Point(371, 233);
+            this.getOtherClients.Name = "getOtherClients";
+            this.getOtherClients.Size = new System.Drawing.Size(100, 44);
+            this.getOtherClients.TabIndex = 28;
+            this.getOtherClients.Text = "Pobierz nazwy innych klientów";
+            this.getOtherClients.UseVisualStyleBackColor = true;
+            this.getOtherClients.Click += new System.EventHandler(this.getOtherClients_Click);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(474, 141);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(73, 13);
+            this.label6.TabIndex = 29;
+            this.label6.Text = "Klienty w sieci";
+            // 
+            // connectWithClientButton
+            // 
+            this.connectWithClientButton.Location = new System.Drawing.Point(477, 183);
+            this.connectWithClientButton.Name = "connectWithClientButton";
+            this.connectWithClientButton.Size = new System.Drawing.Size(100, 44);
+            this.connectWithClientButton.TabIndex = 31;
+            this.connectWithClientButton.Text = "Połącz z klientem";
+            this.connectWithClientButton.UseVisualStyleBackColor = true;
+            this.connectWithClientButton.Click += new System.EventHandler(this.connectWithClientButton_Click);
+            // 
+            // disconnectWithClient
+            // 
+            this.disconnectWithClient.Enabled = false;
+            this.disconnectWithClient.Location = new System.Drawing.Point(477, 233);
+            this.disconnectWithClient.Name = "disconnectWithClient";
+            this.disconnectWithClient.Size = new System.Drawing.Size(100, 44);
+            this.disconnectWithClient.TabIndex = 32;
+            this.disconnectWithClient.Text = "Rozłącz z klientem";
+            this.disconnectWithClient.UseVisualStyleBackColor = true;
+            this.disconnectWithClient.Click += new System.EventHandler(this.disconnectWithClient_Click);
+            // 
+            // selectedClientBox
+            // 
+            this.selectedClientBox.DataBindings.Add(new System.Windows.Forms.Binding("SelectedValue", this.clientixBindingSource3, "isConnectedToCloud", true));
+            this.selectedClientBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.selectedClientBox.FormattingEnabled = true;
+            this.selectedClientBox.Location = new System.Drawing.Point(477, 155);
+            this.selectedClientBox.Name = "selectedClientBox";
+            this.selectedClientBox.Size = new System.Drawing.Size(100, 21);
+            this.selectedClientBox.TabIndex = 30;
+            this.selectedClientBox.SelectedIndexChanged += new System.EventHandler(this.selectedClientBoxs_SelectedIndexChanged);
             // 
             // Clientix
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(636, 279);
+            this.ClientSize = new System.Drawing.Size(585, 283);
+            this.Controls.Add(this.disconnectWithClient);
+            this.Controls.Add(this.connectWithClientButton);
+            this.Controls.Add(this.selectedClientBox);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.getOtherClients);
+            this.Controls.Add(this.setUsernameButton);
+            this.Controls.Add(this.usernameField);
+            this.Controls.Add(this.label7);
             this.Controls.Add(this.managerPortField);
             this.Controls.Add(this.cloudPortField);
             this.Controls.Add(this.managerIPField);
             this.Controls.Add(this.cloudIPField);
             this.Controls.Add(this.connectToCloudButton);
-            this.Controls.Add(this.clientList);
             this.Controls.Add(this.sendText);
             this.Controls.Add(this.log);
             this.Controls.Add(this.connectToManagerButton);
@@ -193,6 +288,11 @@
             this.Controls.Add(this.enteredTextField);
             this.Name = "Clientix";
             this.Text = "Clientix";
+            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.programBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -208,13 +308,25 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button connectToManagerButton;
         private volatile System.Windows.Forms.TextBox log;
+        private System.Windows.Forms.BindingSource clientixBindingSource;
         private System.Windows.Forms.Button sendText;
-        private System.Windows.Forms.CheckedListBox clientList;
         private System.Windows.Forms.Button connectToCloudButton;
         private System.Windows.Forms.TextBox cloudIPField;
         private System.Windows.Forms.TextBox managerIPField;
         private System.Windows.Forms.TextBox cloudPortField;
         private System.Windows.Forms.TextBox managerPortField;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox usernameField;
+        private System.Windows.Forms.Button setUsernameButton;
+        private System.Windows.Forms.Button getOtherClients;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Button connectWithClientButton;
+        private System.Windows.Forms.Button disconnectWithClient;
+        private System.Windows.Forms.ComboBox selectedClientBox;
+        private System.Windows.Forms.BindingSource clientixBindingSource1;
+        private System.Windows.Forms.BindingSource clientixBindingSource2;
+        private System.Windows.Forms.BindingSource clientixBindingSource3;
+        private System.Windows.Forms.BindingSource programBindingSource;
     }
 }
 

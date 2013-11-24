@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Packet;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -23,7 +24,6 @@ namespace Clientix {
 
         //otrzymany i wysyłany pakiets
         private Packet.ATMPacket receivedPacket;
-
         private Packet.ATMPacket processedPacket;
 
         //kolejka pakietów stworzona z wysyłanej wiadomości
@@ -46,9 +46,15 @@ namespace Clientix {
         private Socket cloudSocket;
         private Socket managerSocket;
 
+        //nazwa klienta
+        private String username;
+
         private Thread receiveThread;     //wątek służący do odbierania połączeń
         private Thread sendThread;        // analogicznie - do wysyłania
 
+        // do odbierania
+        private NetworkStream networkStream;
+        //do wysyłania
         private NetworkStream netStream;
 
         public bool isRunning { get; private set; }     //info czy klient chodzi - dla zarządcy
@@ -59,11 +65,17 @@ namespace Clientix {
         //unikalna nazwa klienta widziana przez zarządcę
         private String clientName;
 
-        //tablica innych węzłów klienckich podłączonych otrzymana do zarządcy
-        private String[] otherClients;
+        //tablica innych węzłów klienckich podłączonych do sieci otrzymana do zarządcy
+        private List<String> otherClients;
+
+        //tablic klientów, z którymi mamy połączenie
+        private Dictionary<String, PortVPIVCI> VCArray;
 
         public Clientix() {
             InitializeComponent();
+            otherClients = new List<string>();
+            VCArray = new Dictionary<String, PortVPIVCI>();
+            selectedClientBox.DataSource = otherClients;
         }
 
         private void sendMessage(object sender, EventArgs e) {
@@ -73,16 +85,13 @@ namespace Clientix {
             else {
                 foreach (Packet.ATMPacket packet in packetsFromString) {
                     netStream = new NetworkStream(cloudSocket);
-                    //:DLA_PRZYKŁADU
-                    packet.VCI = 1;
-                    packet.VPI = 1;
-                    packet.port = 1;
-                    //
-                    log.AppendText("wysyłam pakiet!\n");
-                    BinaryFormatter bformatter = new BinaryFormatter();
-                    bformatter.Serialize(netStream, packet);
-                    netStream.Close();
-
+                    PortVPIVCI temp;
+                    if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
+                        log.AppendText("wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + "\n");
+                        BinaryFormatter bformatter = new BinaryFormatter();
+                        bformatter.Serialize(netStream, packet);
+                        netStream.Close();
+                    }
                 }
             }
         }
@@ -108,6 +117,7 @@ namespace Clientix {
                 cloudSocket.Connect(cloudEndPoint);
                 isConnectedToCloud = true;
                 receiveThread = new Thread(this.receiver);
+                receiveThread.IsBackground = true;
                 receiveThread.Start();
             }
             catch (SocketException ex) {
@@ -152,7 +162,9 @@ namespace Clientix {
 
         private void receiver() {
             try {
-                NetworkStream networkStream = new NetworkStream(cloudSocket);
+                if (networkStream == null) {
+                    networkStream = new NetworkStream(cloudSocket);
+                }
                 BinaryFormatter bf = new BinaryFormatter();
                 receivedPacket = (Packet.ATMPacket)bf.Deserialize(networkStream);
                 int tempSeq = 0;
@@ -188,7 +200,7 @@ namespace Clientix {
                     tempSeq = 0;
                     tempMid = 0;
                 }
-                networkStream.Close();
+                //networkStream.Close();
             } catch (SerializationException e) {
                 //gdy przyjdzie coś, czego nie da się zserializować - nie rób nic
             }
@@ -205,6 +217,50 @@ namespace Clientix {
             }
             else {
                 this.log.AppendText(text);
+            }
+        }
+
+        private void setUsernameButton_Click(object sender, EventArgs e) {
+            username = usernameField.Text;
+            SetText("Username set as " + username + "\n");
+        }
+
+        private void getOtherClients_Click(object sender, EventArgs e) {
+            //TU AGENT POBIERA OD ZARZADCY NAZWY KLIENTOW
+            //dla przykladu
+            otherClients.Add("Mietek");
+            otherClients.Add("Zenek");
+            BindingSource bs = new BindingSource();
+            bs.DataSource = otherClients;
+            selectedClientBox.DataSource = bs;
+        }
+
+        private void connectWithClientButton_Click(object sender, EventArgs e) {
+            String clientName = (String)selectedClientBox.SelectedItem;
+            //TU AGENT KRZYCZY : "DAWAJ Z MIETKIEM!"
+            //tu ustalic by jak polaczenie zostanie ustanowione to by ustawialo button 'disconnect' na 'enabled = true'
+            disconnectWithClient.Enabled = true;
+            sendText.Enabled = true;
+            //i dopisać nazwe uzytkownika do tablicy connectedClients
+            /* to jest przykładowa wartość */ PortVPIVCI temp = new PortVPIVCI(1, 1, 1);
+            VCArray.Add(clientName, temp);
+        }
+
+        private void disconnectWithClient_Click(object sender, EventArgs e) {
+            //TU AGENT KRZYCZY : "ROZLACZ Z MIETKIEM!"
+            disconnectWithClient.Enabled = false;
+            sendText.Enabled = false;
+            VCArray.Remove((String)selectedClientBox.SelectedItem);
+        }
+
+        private void selectedClientBoxs_SelectedIndexChanged(object sender, EventArgs e) {
+            //jeśli jest połączenie z tym klientem - pojawia się opcja usunięcia połączenia
+            if (VCArray.ContainsKey((String)selectedClientBox.SelectedItem)) {
+                disconnectWithClient.Enabled = true;
+                sendText.Enabled = true;
+            } else {
+                disconnectWithClient.Enabled = false;
+                sendText.Enabled = false;
             }
         }
 
