@@ -68,7 +68,7 @@ namespace Clientix {
         //tablica innych węzłów klienckich podłączonych do sieci otrzymana do zarządcy
         private List<String> otherClients;
 
-        //tablic klientów, z którymi mamy połączenie
+        //słownik klientów, z którymi mamy połączenie i odpowiadających im komvinacji port,vpi,vci
         private Dictionary<String, PortVPIVCI> VCArray;
 
         public Clientix() {
