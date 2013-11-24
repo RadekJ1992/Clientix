@@ -59,6 +59,7 @@ namespace Clientix {
 
         public bool isRunning { get; private set; }     //info czy klient chodzi - dla zarządcy
 
+        private bool isClientNameSet;
         public bool isConnectedToCloud { get; private set; } // czy połączony z chmurą?
         public bool isConnectedToManager { get; private set; } // czy połączony z zarządcą?
 
@@ -73,6 +74,7 @@ namespace Clientix {
 
         public Clientix() {
             InitializeComponent();
+            isClientNameSet = false;
             otherClients = new List<string>();
             VCArray = new Dictionary<String, PortVPIVCI>();
             selectedClientBox.DataSource = otherClients;
@@ -107,73 +109,76 @@ namespace Clientix {
         }
 
         private void connectToCloud(object sender, EventArgs e) {
-            if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud IP set properly as " + cloudAddress.ToString() + " \n");
-            }
-            else {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud IP" + " \n");
-            }
-            if (Int32.TryParse(cloudPortField.Text, out cloudPort)) {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud port set properly as " + cloudPort.ToString() + " \n");
-            }
-            else {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud Port" + " \n");
-            }
+            if (isClientNameSet) {
+                if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
+                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud IP set properly as " + cloudAddress.ToString() + " \n");
+                } else {
+                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud IP" + " \n");
+                }
+                if (Int32.TryParse(cloudPortField.Text, out cloudPort)) {
+                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud port set properly as " + cloudPort.ToString() + " \n");
+                } else {
+                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud Port" + " \n");
+                }
 
-            cloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                cloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            cloudEndPoint = new IPEndPoint(cloudAddress, cloudPort);
-            try {
-                cloudSocket.Connect(cloudEndPoint);
-                isConnectedToCloud = true;
-                receiveThread = new Thread(this.receiver);
-                receiveThread.IsBackground = true;
-                receiveThread.Start();
-            }
-            catch (SocketException ex) {
-                isConnectedToCloud = false;
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to cloud\n");
-                log.AppendText("Wrong IP or port?\n");
-            }
+                cloudEndPoint = new IPEndPoint(cloudAddress, cloudPort);
+                try {
+                    cloudSocket.Connect(cloudEndPoint);
+                    isConnectedToCloud = true;
+                    receiveThread = new Thread(this.receiver);
+                    receiveThread.IsBackground = true;
+                    receiveThread.Start();
+                } catch (SocketException ex) {
+                    isConnectedToCloud = false;
+                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to cloud\n");
+                    log.AppendText("Wrong IP or port?\n");
+                }
+            } else SetText("Ustaw nazwę klienta!\n");
         }
 
         private void connectToManager(object sender, EventArgs e) {
-            if (IPAddress.TryParse(managerIPField.Text, out managerAddress)) {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Manager IP set properly as " + managerAddress.ToString() + " \n");
-            }
-            else {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading manager IP" + " \n");
-            }
-            if (Int32.TryParse(managerPortField.Text, out managerPort)) {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Manager port set properly as " + managerPort.ToString() + " \n");
-            }
-            else {
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading manager Port" + " \n");
-            }
+            if (isClientNameSet) {
+                if (IPAddress.TryParse(managerIPField.Text, out managerAddress)) {
+                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Manager IP set properly as " + managerAddress.ToString() + " \n");
+                } else {
+                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading manager IP" + " \n");
+                }
+                if (Int32.TryParse(managerPortField.Text, out managerPort)) {
+                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Manager port set properly as " + managerPort.ToString() + " \n");
+                } else {
+                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading manager Port" + " \n");
+                }
 
-            managerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                managerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            managerEndPoint = new IPEndPoint(managerAddress, managerPort);
-            try {
-                managerSocket.Connect(managerEndPoint);
-                isConnectedToManager = true;
+                managerEndPoint = new IPEndPoint(managerAddress, managerPort);
+                try {
+                    managerSocket.Connect(managerEndPoint);
+                    isConnectedToManager = true;
 
-                //działanie AGENTA
+                    //działanie AGENTA
 
 
-            }
-            catch (SocketException ex) {
-                isConnectedToManager = false;
-                log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to manager\n");
-                log.AppendText("Wrong IP or port?\n");
-            }
-            
+                } catch (SocketException ex) {
+                    isConnectedToManager = false;
+                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to manager\n");
+                    log.AppendText("Wrong IP or port?\n");
+                }
+            } else SetText("Ustal nazwę klienta!\n");   
         }
 
         private void receiver() {
             try {
                 if (networkStream == null) {
                     networkStream = new NetworkStream(cloudSocket);
+                    //tworzy string 'hello client ' i tu jego nazwę
+                    String welcomeString = "hello client " + clientName;
+                    //tworzy tablicę bajtów z tego stringa
+                    byte[] welcomeStringBytes = AAL.GetBytesFromString(welcomeString);
+                    //wysyła tą tablicę bajtów streamem
+                    networkStream.Write(welcomeStringBytes, 0, welcomeStringBytes.Length);
                 }
                 BinaryFormatter bf = new BinaryFormatter();
                 receivedPacket = (Packet.ATMPacket)bf.Deserialize(networkStream);
@@ -231,8 +236,14 @@ namespace Clientix {
         }
 
         private void setUsernameButton_Click(object sender, EventArgs e) {
-            username = usernameField.Text;
-            SetText("Username set as " + username + "\n");
+            if (!usernameField.Text.Equals("")) {
+                username = usernameField.Text;
+                isClientNameSet = true;
+                SetText("Nazwa klienta ustawiona jako " + username + "\n");
+            } else {
+                SetText("Dawaj jakąś ludzką nazwę\n");
+                isClientNameSet = false;
+            }
         }
 
         private void getOtherClients_Click(object sender, EventArgs e) {
