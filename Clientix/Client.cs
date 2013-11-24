@@ -88,6 +88,9 @@ namespace Clientix {
                     PortVPIVCI temp;
                     if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
                         log.AppendText("wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + "\n");
+                        packet.port = temp.port;
+                        packet.VPI = temp.VPI;
+                        packet.VCI = temp.VCI;
                         BinaryFormatter bformatter = new BinaryFormatter();
                         bformatter.Serialize(netStream, packet);
                         netStream.Close();
@@ -236,14 +239,19 @@ namespace Clientix {
         }
 
         private void connectWithClientButton_Click(object sender, EventArgs e) {
-            String clientName = (String)selectedClientBox.SelectedItem;
-            //TU AGENT KRZYCZY : "DAWAJ Z MIETKIEM!"
-            //tu ustalic by jak polaczenie zostanie ustanowione to by ustawialo button 'disconnect' na 'enabled = true'
-            disconnectWithClient.Enabled = true;
-            sendText.Enabled = true;
-            //i dopisać nazwe uzytkownika do tablicy connectedClients
-            /* to jest przykładowa wartość */ PortVPIVCI temp = new PortVPIVCI(1, 1, 1);
-            VCArray.Add(clientName, temp);
+            if ((String)selectedClientBox.SelectedItem != null) {
+                String clientName = (String)selectedClientBox.SelectedItem;
+                //TU AGENT KRZYCZY : "DAWAJ Z MIETKIEM!"
+                //tu ustalic by jak polaczenie zostanie ustanowione to by ustawialo button 'disconnect' na 'enabled = true'
+                disconnectWithClient.Enabled = true;
+                sendText.Enabled = true;
+                //i dopisać nazwe uzytkownika do tablicy connectedClients
+                /* to jest przykładowa wartość */
+                PortVPIVCI temp = new PortVPIVCI(4, 3, 2);
+                VCArray.Add(clientName, temp);
+            } else {
+                SetText("Nie wybrano klienta");
+            }
         }
 
         private void disconnectWithClient_Click(object sender, EventArgs e) {
