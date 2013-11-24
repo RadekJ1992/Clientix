@@ -250,7 +250,6 @@
             // 
             // selectedClientBox
             // 
-            this.selectedClientBox.DataBindings.Add(new System.Windows.Forms.Binding("SelectedValue", this.clientixBindingSource3, "isConnectedToCloud", true));
             this.selectedClientBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.selectedClientBox.FormattingEnabled = true;
             this.selectedClientBox.Location = new System.Drawing.Point(477, 155);
