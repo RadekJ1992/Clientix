@@ -64,6 +64,7 @@
             this.enteredTextField.Name = "enteredTextField";
             this.enteredTextField.Size = new System.Drawing.Size(334, 20);
             this.enteredTextField.TabIndex = 0;
+            this.enteredTextField.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.sendMessage_KeyPress);
             // 
             // label1
             // 
