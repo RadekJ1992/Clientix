@@ -173,8 +173,8 @@ namespace Clientix {
             try {
                 if (networkStream == null) {
                     networkStream = new NetworkStream(cloudSocket);
-                    //tworzy string 'hello client ' i tu jego nazwę
-                    String welcomeString = "hello client " + clientName;
+                    //tworzy string 'client ' i tu jego nazwę
+                    String welcomeString = "Client " + clientName;
                     //tworzy tablicę bajtów z tego stringa
                     byte[] welcomeStringBytes = AAL.GetBytesFromString(welcomeString);
                     //wysyła tą tablicę bajtów streamem
