@@ -176,7 +176,8 @@ namespace Clientix {
                     //tworzy string 'client ' i tu jego nazwę
                     String welcomeString = "Client " + clientName;
                     //tworzy tablicę bajtów z tego stringa
-                    byte[] welcomeStringBytes = AAL.GetBytesFromString(welcomeString);
+                    //byte[] welcomeStringBytes = AAL.GetBytesFromString(welcomeString);    //metoda chyba do poprawy,
+                    Byte[] welcomeStringBytes = System.Text.Encoding.ASCII.GetBytes(welcomeString);
                     //wysyła tą tablicę bajtów streamem
                     networkStream.Write(welcomeStringBytes, 0, welcomeStringBytes.Length);
                 }
