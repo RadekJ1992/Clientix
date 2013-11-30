@@ -23,7 +23,6 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
-            this.components = new System.ComponentModel.Container();
             this.enteredTextField = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -32,7 +31,6 @@
             this.label5 = new System.Windows.Forms.Label();
             this.connectToManagerButton = new System.Windows.Forms.Button();
             this.log = new System.Windows.Forms.TextBox();
-            this.clientixBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.sendText = new System.Windows.Forms.Button();
             this.connectToCloudButton = new System.Windows.Forms.Button();
             this.cloudIPField = new System.Windows.Forms.TextBox();
@@ -47,15 +45,6 @@
             this.connectWithClientButton = new System.Windows.Forms.Button();
             this.disconnectWithClient = new System.Windows.Forms.Button();
             this.selectedClientBox = new System.Windows.Forms.ComboBox();
-            this.clientixBindingSource3 = new System.Windows.Forms.BindingSource(this.components);
-            this.clientixBindingSource1 = new System.Windows.Forms.BindingSource(this.components);
-            this.clientixBindingSource2 = new System.Windows.Forms.BindingSource(this.components);
-            this.programBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource3)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource2)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.programBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // enteredTextField
@@ -288,11 +277,6 @@
             this.Controls.Add(this.enteredTextField);
             this.Name = "Clientix";
             this.Text = "Clientix";
-            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource3)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.clientixBindingSource2)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.programBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -308,7 +292,6 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button connectToManagerButton;
         private volatile System.Windows.Forms.TextBox log;
-        private System.Windows.Forms.BindingSource clientixBindingSource;
         private System.Windows.Forms.Button sendText;
         private System.Windows.Forms.Button connectToCloudButton;
         private System.Windows.Forms.TextBox cloudIPField;
@@ -323,10 +306,6 @@
         private System.Windows.Forms.Button connectWithClientButton;
         private System.Windows.Forms.Button disconnectWithClient;
         private System.Windows.Forms.ComboBox selectedClientBox;
-        private System.Windows.Forms.BindingSource clientixBindingSource1;
-        private System.Windows.Forms.BindingSource clientixBindingSource2;
-        private System.Windows.Forms.BindingSource clientixBindingSource3;
-        private System.Windows.Forms.BindingSource programBindingSource;
     }
 }
 

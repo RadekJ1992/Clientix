@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -63,9 +64,6 @@ namespace Clientix {
         public bool isConnectedToCloud { get; private set; } // czy połączony z chmurą?
         public bool isConnectedToManager { get; private set; } // czy połączony z zarządcą?
 
-        //unikalna nazwa klienta widziana przez zarządcę
-        private String clientName;
-
         //tablica innych węzłów klienckich podłączonych do sieci otrzymana do zarządcy
         private List<String> otherClients;
 
@@ -74,6 +72,16 @@ namespace Clientix {
 
         public Clientix() {
             InitializeComponent();
+
+            //tooltip dla nazwy klienta
+            System.Windows.Forms.ToolTip toolTip = new System.Windows.Forms.ToolTip();
+            toolTip.SetToolTip(this.label7, "Nazwa klienta może zawierać litery, cyfry i znak '_'");
+            toolTip.SetToolTip(this.usernameField, "Nazwa klienta może zawierać litery, cyfry i znak '_'");
+            toolTip.AutoPopDelay = 2000;
+            toolTip.InitialDelay = 500;
+            toolTip.ReshowDelay = 500;
+            toolTip.ShowAlways = true;
+
             isClientNameSet = false;
             otherClients = new List<string>();
             VCArray = new Dictionary<String, PortVPIVCI>();
@@ -174,7 +182,7 @@ namespace Clientix {
                 if (networkStream == null) {
                     networkStream = new NetworkStream(cloudSocket);
                     //tworzy string 'client ' i tu jego nazwę
-                    String welcomeString = "Client " + clientName;
+                    String welcomeString = "Client " + username;
                     //tworzy tablicę bajtów z tego stringa
                     //byte[] welcomeStringBytes = AAL.GetBytesFromString(welcomeString);    //metoda chyba do poprawy,
                     Byte[] welcomeStringBytes = System.Text.Encoding.ASCII.GetBytes(welcomeString);
@@ -238,11 +246,13 @@ namespace Clientix {
 
         private void setUsernameButton_Click(object sender, EventArgs e) {
             if (!usernameField.Text.Equals("")) {
-                username = usernameField.Text;
-                isClientNameSet = true;
-                SetText("Nazwa klienta ustawiona jako " + username + "\n");
+                if (Regex.IsMatch(usernameField.Text, "^[a-zA-Z0-9 _]+$")) {
+                    username = usernameField.Text;
+                    isClientNameSet = true;
+                    SetText("Nazwa klienta ustawiona jako " + username + "\n");
+                } else this.SetText("Dawaj jakąś ludzką nazwę (dozwolone tylko litery, cyfry i znak '_')\n");
             } else {
-                SetText("Dawaj jakąś ludzką nazwę\n");
+                SetText("Dawaj jakąś ludzką nazwę (dozwolone tylko litery, cyfry i znak '_')\n");
                 isClientNameSet = false;
             }
         }
