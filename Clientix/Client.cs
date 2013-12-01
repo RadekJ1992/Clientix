@@ -138,31 +138,33 @@ namespace Clientix {
 
         private void connectToCloud(object sender, EventArgs e) {
             if (isClientNameSet) {
-                if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
-                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud IP set properly as " + cloudAddress.ToString() + " \n");
-                } else {
-                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud IP" + " \n");
-                }
-                if (Int32.TryParse(cloudPortField.Text, out cloudPort)) {
-                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud port set properly as " + cloudPort.ToString() + " \n");
-                } else {
-                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud Port" + " \n");
-                }
+                if (!isConnectedToCloud) {
+                    if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
+                        log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud IP set properly as " + cloudAddress.ToString() + " \n");
+                    } else {
+                        log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud IP" + " \n");
+                    }
+                    if (Int32.TryParse(cloudPortField.Text, out cloudPort)) {
+                        log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud port set properly as " + cloudPort.ToString() + " \n");
+                    } else {
+                        log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud Port" + " \n");
+                    }
 
-                cloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    cloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                cloudEndPoint = new IPEndPoint(cloudAddress, cloudPort);
-                try {
-                    cloudSocket.Connect(cloudEndPoint);
-                    isConnectedToCloud = true;
-                    receiveThread = new Thread(this.receiver);
-                    receiveThread.IsBackground = true;
-                    receiveThread.Start();
-                } catch (SocketException ex) {
-                    isConnectedToCloud = false;
-                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to cloud\n");
-                    log.AppendText("Wrong IP or port?\n");
-                }
+                    cloudEndPoint = new IPEndPoint(cloudAddress, cloudPort);
+                    try {
+                        cloudSocket.Connect(cloudEndPoint);
+                        isConnectedToCloud = true;
+                        receiveThread = new Thread(this.receiver);
+                        receiveThread.IsBackground = true;
+                        receiveThread.Start();
+                    } catch (SocketException ex) {
+                        isConnectedToCloud = false;
+                        log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to cloud\n");
+                        log.AppendText("Wrong IP or port?\n");
+                    }
+                } else SetText("Klient jest już połączony z chmurą");
             } else SetText("Ustaw nazwę klienta!\n");
         }
 
@@ -244,10 +246,14 @@ namespace Clientix {
                     tempMid = 0;
                 }
                 //networkStream.Close();
-            } catch (SerializationException e) {
-                //gdy przyjdzie coś, czego nie da się zserializować - nie rób nic
+                receiver();
+            } catch (Exception e){
+                SetText("Coś poszło nie tak : " + e.Message + "\n");
+                cloudSocket = null;
+                cloudEndPoint = null;
+                networkStream = null;
+                isConnectedToCloud = false;
             }
-            receiver();
         }
 
         private void SetText(string text) {
