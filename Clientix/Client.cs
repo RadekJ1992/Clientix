@@ -164,7 +164,7 @@ namespace Clientix {
                         log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to cloud\n");
                         log.AppendText("Wrong IP or port?\n");
                     }
-                } else SetText("Klient jest już połączony z chmurą");
+                } else SetText("Klient jest już połączony z chmurą\n");
             } else SetText("Ustaw nazwę klienta!\n");
         }
 
