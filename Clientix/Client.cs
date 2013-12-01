@@ -94,13 +94,30 @@ namespace Clientix {
                                                     " Not connected to cloud!");
             else {
                 foreach (Packet.ATMPacket packet in packetsFromString) {
+                    Boolean isPortVPIVCISet = false;
+                    try {
+                        packet.port = int.Parse(outPortTextBox.Text);
+                        packet.VPI = int.Parse(outVPITextBox.Text);
+                        packet.VCI = int.Parse(outVCITextBox.Text);
+                        isPortVPIVCISet = true;
+                    }
+                    catch {
+                        isPortVPIVCISet = false;
+                    }
                     netStream = new NetworkStream(cloudSocket);
                     PortVPIVCI temp;
                     if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
-                        log.AppendText("wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + "\n");
-                        packet.port = temp.port;
-                        packet.VPI = temp.VPI;
-                        packet.VCI = temp.VCI;
+                        if (isPortVPIVCISet) {
+                            log.AppendText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + int.Parse(outPortTextBox.Text) + ";" +
+                                            int.Parse(outVPITextBox.Text) + ";" + int.Parse(outVCITextBox.Text) + "]\n");
+                        }
+                        else {
+                            packet.port = temp.port;
+                            packet.VPI = temp.VPI;
+                            packet.VCI = temp.VCI;
+                            log.AppendText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + packet.port + ";" +
+                                           packet.VPI + ";" + packet.VCI + "]\n");
+                        }
                         BinaryFormatter bformatter = new BinaryFormatter();
                         bformatter.Serialize(netStream, packet);
                         netStream.Close();
