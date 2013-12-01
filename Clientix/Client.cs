@@ -108,14 +108,14 @@ namespace Clientix {
                     PortVPIVCI temp;
                     if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
                         if (isPortVPIVCISet) {
-                            log.AppendText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + int.Parse(outPortTextBox.Text) + ";" +
+                            SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + int.Parse(outPortTextBox.Text) + ";" +
                                             int.Parse(outVPITextBox.Text) + ";" + int.Parse(outVCITextBox.Text) + "]\n");
                         }
                         else {
                             packet.port = temp.port;
                             packet.VPI = temp.VPI;
                             packet.VCI = temp.VCI;
-                            log.AppendText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + packet.port + ";" +
+                            SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + packet.port + ";" +
                                            packet.VPI + ";" + packet.VCI + "]\n");
                         }
                         BinaryFormatter bformatter = new BinaryFormatter();
@@ -125,6 +125,9 @@ namespace Clientix {
                 }
             }
             enteredTextField.Clear();
+            outPortTextBox.Clear();
+            outVCITextBox.Clear();
+            outVPITextBox.Clear();
         }
 
         private void sendMessage_KeyPress(object sender, KeyPressEventArgs e)
