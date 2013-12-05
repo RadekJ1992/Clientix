@@ -25,7 +25,7 @@ namespace Clientix {
 
         //otrzymany i wysyłany pakiets
         private Packet.ATMPacket receivedPacket;
-        private Packet.ATMPacket processedPacket;
+        //private Packet.ATMPacket processedPacket;
 
         //kolejka pakietów stworzona z wysyłanej wiadomości
         private Queue<Packet.ATMPacket> packetsFromString;
@@ -51,7 +51,7 @@ namespace Clientix {
         private String username;
 
         private Thread receiveThread;     //wątek służący do odbierania połączeń
-        private Thread sendThread;        // analogicznie - do wysyłania
+        //private Thread sendThread;        // analogicznie - do wysyłania
 
         // do odbierania
         private NetworkStream networkStream;
@@ -65,10 +65,10 @@ namespace Clientix {
         public bool isConnectedToManager { get; private set; } // czy połączony z zarządcą?
 
         //tablica innych węzłów klienckich podłączonych do sieci otrzymana do zarządcy
-        private List<String> otherClients;
+        public List<String> otherClients { get; set; }
 
         //słownik klientów, z którymi mamy połączenie i odpowiadających im komvinacji port,vpi,vci
-        private Dictionary<String, PortVPIVCI> VCArray;
+        public Dictionary<String, PortVPIVCI> VCArray { get; set; }
 
         public Clientix() {
             InitializeComponent();
@@ -90,8 +90,7 @@ namespace Clientix {
 
         private void sendMessage(object sender, EventArgs e) {
             packetsFromString = Packet.AAL.getATMPackets(enteredTextField.Text);
-            if (!isConnectedToCloud) log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") +
-                                                    " Not connected to cloud!");
+            if (!isConnectedToCloud) log.AppendText("Nie jestem połączony z chmurą!!");
             else {
                 foreach (Packet.ATMPacket packet in packetsFromString) {
                     Boolean isPortVPIVCISet = false;
@@ -140,14 +139,14 @@ namespace Clientix {
             if (isClientNameSet) {
                 if (!isConnectedToCloud) {
                     if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
-                        log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud IP set properly as " + cloudAddress.ToString() + " \n");
+                        log.AppendText("IP ustawiono jako " + cloudAddress.ToString() + " \n");
                     } else {
-                        log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud IP" + " \n");
+                        log.AppendText("Błąd podczas ustawiania IP chmury (zły format?)" + " \n");
                     }
                     if (Int32.TryParse(cloudPortField.Text, out cloudPort)) {
-                        log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Cloud port set properly as " + cloudPort.ToString() + " \n");
+                        log.AppendText("Pory chmuru ustawiony jako " + cloudPort.ToString() + " \n");
                     } else {
-                        log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading cloud Port" + " \n");
+                        log.AppendText("Błąd podczas ustawiania portu chmury (zły format?)" + " \n");
                     }
 
                     cloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -161,8 +160,8 @@ namespace Clientix {
                         receiveThread.Start();
                     } catch (SocketException ex) {
                         isConnectedToCloud = false;
-                        log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to cloud\n");
-                        log.AppendText("Wrong IP or port?\n");
+                        log.AppendText("Błąd podczas łączenia się z chmurą\n");
+                        log.AppendText("Złe IP lub port? Chmura nie działa?\n");
                     }
                 } else SetText("Klient jest już połączony z chmurą\n");
             } else SetText("Ustaw nazwę klienta!\n");
@@ -171,14 +170,14 @@ namespace Clientix {
         private void connectToManager(object sender, EventArgs e) {
             if (isClientNameSet) {
                 if (IPAddress.TryParse(managerIPField.Text, out managerAddress)) {
-                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Manager IP set properly as " + managerAddress.ToString() + " \n");
+                    log.AppendText("IP zarządcy ustawione jako " + managerAddress.ToString() + " \n");
                 } else {
-                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading manager IP" + " \n");
+                    log.AppendText("Błąd podczas ustawiania IP zarządcy\n");
                 }
                 if (Int32.TryParse(managerPortField.Text, out managerPort)) {
-                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Manager port set properly as " + managerPort.ToString() + " \n");
+                    log.AppendText("Port zarządcy ustawiony jako " + managerPort.ToString() + " \n");
                 } else {
-                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error reading manager Port" + " \n");
+                    log.AppendText("Błąd podczas ustawiania portu zarządcy\n");
                 }
 
                 managerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -193,8 +192,8 @@ namespace Clientix {
 
                 } catch (SocketException ex) {
                     isConnectedToManager = false;
-                    log.AppendText(DateTime.Now.ToString(@"MM\/dd\/yyyy h\:mm tt") + " >Error while connecting to manager\n");
-                    log.AppendText("Wrong IP or port?\n");
+                    log.AppendText("Błąd podczas łączenia się z zarządcą!\n");
+                    log.AppendText("Złe IP lub port? Zarządca nie działa?\n");
                 }
             } else SetText("Ustal nazwę klienta!\n");   
         }
@@ -231,11 +230,11 @@ namespace Clientix {
                             queuedReceivedPackets.Enqueue(receivedPacket);
                         }
                         else {
-                            SetText("Packet lost! :<");
+                            SetText("Stracono po drodze pakiet! :< Wartość AALSeq nie wzrosła o 1!\n");
                         }
                     }
                     else {
-                        SetText("packet from another message (different AALMid)");
+                        SetText("Pakiet z innej wiadomości! Inne AALMid!");
                     }
                 }
                 else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.EOM) {
@@ -305,6 +304,15 @@ namespace Clientix {
                 VCArray.Add(clientName, temp);
             } else {
                 SetText("Nie wybrano klienta");
+            }
+        }
+
+        //metoda wywołana gdy agent odbierze wiadomość ESTABLISHED clientNAME port vpi vci
+        public void connectionEstablished(String clientName, int port, int vpi, int vci) {
+            foreach (String name in otherClients) {
+                if (name == clientName) {
+                    VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                }
             }
         }
 
