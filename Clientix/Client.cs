@@ -141,7 +141,7 @@ namespace Clientix {
                         cloudSocket.Connect(cloudEndPoint);
                         isConnectedToCloud = true;
                         receiveThread = new Thread(this.receiver);
-                        //receiveThread.IsBackground = true;
+                        receiveThread.IsBackground = true;
                         receiveThread.Start();
                     } catch (SocketException ex) {
                         isConnectedToCloud = false;
@@ -174,7 +174,9 @@ namespace Clientix {
                         isConnectedToManager = true;
                         agent = new Agentix(this);
                         agent.readThread.Start();
+                        agent.readThread.IsBackground = true;
                         agent.writeThread.Start();
+                        agent.writeThread.IsBackground = true;
                         agent.sendLoginC = true;
                     } catch (SocketException ex) {
                         isConnectedToManager = false;
