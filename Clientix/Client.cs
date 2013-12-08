@@ -20,8 +20,9 @@ namespace Clientix {
 
     public partial class Clientix : Form {
 
-        //fuck delegates!
         delegate void SetTextCallback(string text);
+        delegate void ConnectionEstablishedCallback(String clientName, int port, int vpi, int vci);
+        delegate void ConnectionBrokenCallback(int port, int vpi, int vci);
 
         //otrzymany i wysyłany pakiets
         private Packet.ATMPacket receivedPacket;
@@ -96,30 +97,11 @@ namespace Clientix {
             if (!isConnectedToCloud) log.AppendText("Nie jestem połączony z chmurą!!");
             else {
                 foreach (Packet.ATMPacket packet in packetsFromString) {
-                    Boolean isPortVPIVCISet = false;
-                    try {
-                        packet.port = int.Parse(outPortTextBox.Text);
-                        packet.VPI = int.Parse(outVPITextBox.Text);
-                        packet.VCI = int.Parse(outVCITextBox.Text);
-                        isPortVPIVCISet = true;
-                    }
-                    catch {
-                        isPortVPIVCISet = false;
-                    }
                     netStream = new NetworkStream(cloudSocket);
                     PortVPIVCI temp;
                     if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
-                        if (isPortVPIVCISet) {
-                            SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + int.Parse(outPortTextBox.Text) + ";" +
+                        SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + int.Parse(outPortTextBox.Text) + ";" +
                                             int.Parse(outVPITextBox.Text) + ";" + int.Parse(outVCITextBox.Text) + "]\n");
-                        }
-                        else {
-                            packet.port = temp.port;
-                            packet.VPI = temp.VPI;
-                            packet.VCI = temp.VCI;
-                            SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + packet.port + ";" +
-                                           packet.VPI + ";" + packet.VCI + "]\n");
-                        }
                         BinaryFormatter bformatter = new BinaryFormatter();
                         bformatter.Serialize(netStream, packet);
                         netStream.Close();
@@ -127,9 +109,6 @@ namespace Clientix {
                 }
             }
             enteredTextField.Clear();
-            outPortTextBox.Clear();
-            outVCITextBox.Clear();
-            outVPITextBox.Clear();
         }
 
         private void sendMessage_KeyPress(object sender, KeyPressEventArgs e)
@@ -172,33 +151,37 @@ namespace Clientix {
 
         private void connectToManager(object sender, EventArgs e) {
             if (isClientNameSet) {
-                if (IPAddress.TryParse(managerIPField.Text, out managerAddress)) {
-                    log.AppendText("IP zarządcy ustawione jako " + managerAddress.ToString() + " \n");
-                } else {
-                    log.AppendText("Błąd podczas ustawiania IP zarządcy\n");
-                }
-                if (Int32.TryParse(managerPortField.Text, out managerPort)) {
-                    log.AppendText("Port zarządcy ustawiony jako " + managerPort.ToString() + " \n");
-                } else {
-                    log.AppendText("Błąd podczas ustawiania portu zarządcy\n");
-                }
+                if (!isConnectedToManager) {
+                    if (IPAddress.TryParse(managerIPField.Text, out managerAddress)) {
+                        log.AppendText("IP zarządcy ustawione jako " + managerAddress.ToString() + " \n");
+                    } else {
+                        log.AppendText("Błąd podczas ustawiania IP zarządcy\n");
+                    }
+                    if (Int32.TryParse(managerPortField.Text, out managerPort)) {
+                        log.AppendText("Port zarządcy ustawiony jako " + managerPort.ToString() + " \n");
+                    } else {
+                        log.AppendText("Błąd podczas ustawiania portu zarządcy\n");
+                    }
 
-                managerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    managerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                managerEndPoint = new IPEndPoint(managerAddress, managerPort);
-                try {
-                    managerSocket.Connect(managerEndPoint);
-                    isConnectedToManager = true;
-                    agent = new Agentix(this);
-                    agent.start();
-                    agent.SendLoginC();
-                } catch (SocketException ex) {
-                    isConnectedToManager = false;
-                    log.AppendText("Błąd podczas łączenia się z zarządcą!\n");
-                    log.AppendText("Złe IP lub port? Zarządca nie działa?\n");
-                }
-            } else SetText("Ustal nazwę klienta!\n");   
+                    managerEndPoint = new IPEndPoint(managerAddress, managerPort);
+                    try {
+                        managerSocket.Connect(managerEndPoint);
+                        isConnectedToManager = true;
+                        agent = new Agentix(this);
+                        agent.readThread.Start();
+                        agent.writeThread.Start();
+                        agent.sendLoginC = true;
+                    } catch (SocketException ex) {
+                        isConnectedToManager = false;
+                        log.AppendText("Błąd podczas łączenia się z zarządcą!\n");
+                        log.AppendText("Złe IP lub port? Zarządca nie działa?\n");
+                    }
+                } else SetText("Już jestem połączony z zarządcą!\n");
+            } else SetText("Ustal nazwę klienta!\n");
         }
+
 
         private void receiver() {
             try {
@@ -215,10 +198,26 @@ namespace Clientix {
                 receivedPacket = (Packet.ATMPacket)bf.Deserialize(networkStream);
                 int tempSeq = 0;
                 int tempMid = 0;
+
+                PortVPIVCI temp = new PortVPIVCI(receivedPacket.port, receivedPacket.VPI, receivedPacket.VCI);
+                String tempName = "";
+                bool isNameFound = false;
+                foreach (String name in VCArray.Keys) {
+                    PortVPIVCI t;
+                    VCArray.TryGetValue(name, out t);
+                    if (t.port == temp.port && t.VPI == temp.VPI && t.VCI == temp.VCI) {
+                        tempName = name;
+                        isNameFound = true;
+                    }
+                }
+                if (isNameFound) {
+                    SetText("tempName : ");
+                } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
+
                 // gdy wiadomość zawarta jest w jednym pakiecie
                 if (receivedPacket.PacketType == Packet.ATMPacket.AALType.SSM) {
                     SetText(Packet.AAL.getStringFromPacket(receivedPacket) + "\n");
-               }
+                }
                 else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.BOM) {
                     tempSeq = 0;
                     tempMid = receivedPacket.AALMid;
@@ -274,7 +273,7 @@ namespace Clientix {
 
         private void setUsernameButton_Click(object sender, EventArgs e) {
             if (!usernameField.Text.Equals("")) {
-                if (Regex.IsMatch(usernameField.Text, "^[a-zA-Z0-9 _]+$")) {
+                if (Regex.IsMatch(usernameField.Text, "^[a-zA-Z0-9_]+$")) {
                     username = usernameField.Text;
                     isClientNameSet = true;
                     SetText("Nazwa klienta ustawiona jako " + username + "\n");
@@ -287,46 +286,85 @@ namespace Clientix {
 
         private void getOtherClients_Click(object sender, EventArgs e) {
             if (agent != null)
-            agent.SendGetClients();
+            agent.sendGetClients = true;
         }
 
         public void setOtherClients(List<String> otherCl) {
-            otherClients = otherCl;
+            List<String> temp = new List<String>();
+            //usun swoje wlasne imie
+            foreach (String name in otherCl) {
+                if (name != username) {
+                    temp.Add(name);
+                }
+            }
+            otherClients = temp;
             BindingSource bs = new BindingSource();
             bs.DataSource = otherClients;
+            this.Invoke((MethodInvoker)delegate() {
             selectedClientBox.DataSource = bs;
+            });
         }
         private void connectWithClientButton_Click(object sender, EventArgs e) {
             if ((String)selectedClientBox.SelectedItem != null) {
                 String clientName = (String)selectedClientBox.SelectedItem;
-                agent.SendCall(clientName);
+                agent.whoIsCalled = clientName;
+                agent.sendCall = true;
+                SetText("Wysłano żądanie nawiązania połączenia z " + clientName + "\n");
             } else {
-                SetText("Nie wybrano klienta");
+                SetText("Nie wybrano klienta\n");
             }
         }
 
         //metoda wywołana gdy agent odbierze wiadomość ESTABLISHED clientNAME port vpi vci
         public void connectionEstablished(String clientName, int port, int vpi, int vci) {
-            foreach (String name in otherClients) {
-                if (name == clientName) {
-                    VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
-                }
-                //sprawdza przy okazji czy połączenie zostało nawiązane z aktualnie zaznaczonym klientem - jeśli tak - aktywuje możliwość wysyłania wiadomości
-                if (VCArray.ContainsKey((String)selectedClientBox.SelectedItem)) {
-                    disconnectWithClient.Enabled = true;
-                    sendText.Enabled = true;
-                } else {
-                    disconnectWithClient.Enabled = false;
-                    sendText.Enabled = false;
+            if (this.InvokeRequired) {
+                ConnectionEstablishedCallback d = new ConnectionEstablishedCallback(connectionEstablished);
+                this.Invoke(d, new object[] { clientName, port, vpi, vci });
+            } else {
+                foreach (String name in otherClients) {
+                    if (name == clientName) {
+                        VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                    }
+                    //sprawdza przy okazji czy połączenie zostało nawiązane z aktualnie zaznaczonym klientem - jeśli tak - aktywuje możliwość wysyłania wiadomości
+                    String tempSelCl = "";
+                    tempSelCl = (String)selectedClientBox.SelectedItem;
+                    if (VCArray.ContainsKey(tempSelCl)) {
+                            disconnectWithClient.Enabled = true;
+                            sendText.Enabled = true;
+                    } else {
+                            disconnectWithClient.Enabled = false;
+                            sendText.Enabled = false;
+                    }
+                    SetText("Połączenie z " + clientName + " zostało nawiązane!\n");
+                    this.Refresh();
                 }
             }
         }
 
+        public void connectionBroken(int port, int vpi, int vci) {
+            if (this.InvokeRequired) {
+                ConnectionBrokenCallback d = new ConnectionBrokenCallback(connectionBroken);
+                this.Invoke(d, new object[] { port, vpi, vci });
+            } else {
+                PortVPIVCI temp = new PortVPIVCI(port, vpi, vci);
+                String tempName = "";
+                foreach (String name in VCArray.Keys) {
+                    PortVPIVCI t;
+                    VCArray.TryGetValue(name, out t);
+                    if (t.port == temp.port && t.VPI == temp.VPI && t.VCI == temp.VCI) {
+                        tempName = name;
+                    }
+                }
+                        VCArray.Remove(tempName);
+                        disconnectWithClient.Enabled = false;
+                        sendText.Enabled = false;
+                        SetText("Połączenie z " + tempName + " zostało zerwane! \n");
+            }
+        }
+
         private void disconnectWithClient_Click(object sender, EventArgs e) {
-            agent.SendDisconnect((String)selectedClientBox.SelectedItem);
-            disconnectWithClient.Enabled = false;
-            sendText.Enabled = false;
-            VCArray.Remove((String)selectedClientBox.SelectedItem);
+            agent.whoToDisconnect = ((String)selectedClientBox.SelectedItem);
+            agent.sendDisconnect = true;
         }
 
         private void selectedClientBoxs_SelectedIndexChanged(object sender, EventArgs e) {
@@ -339,21 +377,111 @@ namespace Clientix {
                 sendText.Enabled = false;
             }
         }
+
+        private void forceSend_Click(object sender, EventArgs e) {
+            packetsFromString = Packet.AAL.getATMPackets(enteredTextField.Text);
+            if (!isConnectedToCloud) log.AppendText("Nie jestem połączony z chmurą!!");
+            else {
+                foreach (Packet.ATMPacket packet in packetsFromString) {
+                    Boolean isPortVPIVCISet = false;
+                    try {
+                        packet.port = int.Parse(outPortTextBox.Text);
+                        packet.VPI = int.Parse(outVPITextBox.Text);
+                        packet.VCI = int.Parse(outVCITextBox.Text);
+                        isPortVPIVCISet = true;
+                    } catch {
+                        isPortVPIVCISet = false;
+                    }
+                    netStream = new NetworkStream(cloudSocket);
+                    PortVPIVCI temp;
+                    if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
+                        if (isPortVPIVCISet) {
+                            SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + int.Parse(outPortTextBox.Text) + ";" +
+                                            int.Parse(outVPITextBox.Text) + ";" + int.Parse(outVCITextBox.Text) + "]\n");
+                        } else {
+                            packet.port = temp.port;
+                            packet.VPI = temp.VPI;
+                            packet.VCI = temp.VCI;
+                            SetText("Wysyłam pakiet do z ustawieniem [" + packet.port + ";" +
+                                           packet.VPI + ";" + packet.VCI + "]\n");
+                        }
+                        BinaryFormatter bformatter = new BinaryFormatter();
+                        bformatter.Serialize(netStream, packet);
+                        netStream.Close();
+                    }
+                }
+            }
+            enteredTextField.Clear();
+            outPortTextBox.Clear();
+            outVCITextBox.Clear();
+            outVPITextBox.Clear();
+        }
     }
     class Agentix {
         StreamReader read = null;
         StreamWriter write = null;
         NetworkStream netstream = null;
-        bool isConnected = true;
         Clientix parent;
-        private Thread writeThread;
-        private Thread readThread;
+        public Thread writeThread;
+        public Thread readThread;
+        public bool sendLoginC;
+        public bool sendCall;
+        public String whoIsCalled;
+        public bool sendDisconnect;
+        public String whoToDisconnect;
+        public bool sendGetClients;
 
         public Agentix(Clientix parent) {
             this.parent = parent;
             netstream = new NetworkStream(parent.managerSocket);
             read = new StreamReader(netstream);
             write = new StreamWriter(netstream);
+            sendLoginC = false;
+            sendCall = false;
+            sendDisconnect = false;
+            sendGetClients = false;
+            whoIsCalled = "";
+            whoToDisconnect = "";
+            writeThread = new Thread(writer);
+            readThread = new Thread(reader);
+        }
+        //Funkcja przesyłająca dane do serwera
+        //Wykonywana w osobnym watku
+        private void writer() {
+            while (parent.isConnectedToManager) {
+                try {
+                    if (sendLoginC) {
+                        write.WriteLine("LOGINC\n" + parent.username);
+                        write.Flush();
+                        sendLoginC = false;
+                    }
+                    if (sendCall) {
+                        if (whoIsCalled != "" && whoIsCalled != null) {
+                            write.WriteLine("CALL\n" + whoIsCalled);
+                            write.Flush();
+                            whoIsCalled = "";
+                            sendCall = false;
+                        }
+                    }
+                    if (sendDisconnect) {
+                        if (whoToDisconnect != "" && whoToDisconnect != null) {
+                            write.WriteLine("DISCONNECT\n" + whoToDisconnect);
+                            write.Flush();
+                            whoToDisconnect = "";
+                            sendDisconnect = false;
+                        }
+                    }
+                    if (sendGetClients) {
+                        write.WriteLine("GET_CLIENTS\n");
+                        write.Flush();
+                        sendGetClients = false;
+                    }
+                } catch {
+                    parent.isConnectedToManager = false;
+                    writeThread.Abort();
+                    readThread.Abort();
+                }
+            }
         }
         //Funkcja odpowiedzialna za odbieraie danych od serwera
         //wykonywana w osobnym watąku
@@ -367,86 +495,53 @@ namespace Clientix {
                     odp = read.ReadLine();
                     Console.WriteLine("Odczytano: " + odp);
                     slowa = odp.Split(delimitter, StringSplitOptions.RemoveEmptyEntries);
-                    if (slowa[0] == "LOGGED")//udane logowanie
-                {
+                    if (slowa[0] == "LOGGED") {
                         parent.isLoggedToManager = true;
                         parent.SetText("Zalogowano u zarządcy\n");
-                    } else if (slowa[0] == "ESTABLISHED")//udane zestawienie połączenia
-                {
+                    } else if (slowa[0] == "ESTABLISHED") {
                         parent.connectionEstablished(slowa[1], int.Parse(slowa[2]), int.Parse(slowa[3]), int.Parse(slowa[4]));
-                    } else if (slowa[0] == "CLIENTS")//zwrócono listę klientów
-                {
+                    } else if (slowa[0] == "CLIENTS") {
                         List<String> listakl = new List<string>();
                         for (int i = 1; i < slowa.Length; i++) {
                             listakl.Add(slowa[i]);
                         }
                         parent.otherClients = listakl;
-                        parent.SetText("Wykryto " + slowa.Length + " innych klientów\n");
+                        parent.SetText("Wykryto " + (slowa.Length - 2) + " innych klientów\n");
                         parent.setOtherClients(listakl);
-                    } else if (slowa[0] == "MSG" || slowa[0] == "ERROR" || slowa[0] == "DONE") {
+                    } else if (slowa[0] == "MSG" || slowa[0] == "DONE") {
                         parent.SetText("Wykryto komunikat o treści:");
                         foreach (String s in slowa) {
                             parent.SetText(" " + s + " ");
                         }
                         parent.SetText("\n");
+                    } else if (slowa[0] == "ERR") {
+                        parent.SetText("Wykryto komunikat błędu o treści:");
+                        foreach (String s in slowa) {
+                            parent.SetText(" " + s + " ");
+                        }
+                        parent.SetText("\n");
+                        parent.isConnectedToManager = false;
+                        writeThread.Abort();
+                        readThread.Abort();
+                        parent.SetText("Połącz się ponownie!\n");
+                    } else if (slowa[0] == "DELETE") {
+                        try {
+                            int tempPort = int.Parse(slowa[1]);
+                            int tempVPI = int.Parse(slowa[2]);
+                            int tempVCI = int.Parse(slowa[3]);
+                            parent.connectionBroken(tempPort, tempVPI, tempVCI);
+                        } catch {
+                            parent.SetText("Zarządca wysłał złe parametry zerwania połączenia");
+                        }
                     }
-                } catch {
+                } catch (Exception e) {
+                    parent.SetText(e.Message+"\n");
                     parent.SetText("Problem w połączeniu się z zarządcą :<\n");
                     parent.isConnectedToManager = false;
                     writeThread.Abort();
                     readThread.Abort();
                 }
             }
-        }
-
-        //Funkcja przesyłająca dane do serwera
-        //Wykonywana w osobnym watku
-        private void writer() {
-            while (parent.isConnectedToManager) {
-                try {
-                    String myString = Console.ReadLine();
-                    write.WriteLine(myString);
-                    write.Flush();
-                } catch {
-                    parent.isConnectedToManager = false;
-                    writeThread.Abort();
-                    readThread.Abort();
-                }
-            }
-        }
-        public void SendSMS(String sms) {
-            if (isConnected) {
-                write.WriteLine(sms);
-                write.Flush();
-            } else
-                Console.WriteLine("Nie da się wysłać, brak połączenia");
-        }
-        public void start() {
-            if (parent.isConnectedToManager) {
-                parent.SetText("Połączono z zarządcą\n");
-
-                //watek wysyłający dane metoda writer
-                writeThread = new Thread(writer);
-                writeThread.Start();
-
-                //wątek odbierjący dane metoda reader
-                readThread = new Thread(reader);
-                readThread.Start();
-
-            } else
-                parent.SetText("Nie połączono z zarządcą");
-        }
-        public void SendLoginC() {
-            SendSMS("LOGINC\n" + parent.username);
-        }
-        public void SendCall(String name) {
-            SendSMS("CALL\n" + name);
-        }
-        public void SendDisconnect(String name) {
-            SendSMS("DISCONNECT\n" + name);
-        }
-        public void SendGetClients() {
-            SendSMS("GET_CLIENTS");
         }
     }
 }

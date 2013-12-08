@@ -51,6 +51,7 @@
             this.label8 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
+            this.forceSend = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // enteredTextField
@@ -132,7 +133,7 @@
             this.sendText.Enabled = false;
             this.sendText.Location = new System.Drawing.Point(15, 51);
             this.sendText.Name = "sendText";
-            this.sendText.Size = new System.Drawing.Size(333, 35);
+            this.sendText.Size = new System.Drawing.Size(162, 35);
             this.sendText.TabIndex = 13;
             this.sendText.Text = "Wyślij tekst do zaznaczonego klienta";
             this.sendText.UseVisualStyleBackColor = true;
@@ -162,6 +163,7 @@
             this.managerIPField.Name = "managerIPField";
             this.managerIPField.Size = new System.Drawing.Size(100, 20);
             this.managerIPField.TabIndex = 21;
+            this.managerIPField.Text = "127.0.0.1";
             // 
             // cloudPortField
             // 
@@ -177,6 +179,7 @@
             this.managerPortField.Name = "managerPortField";
             this.managerPortField.Size = new System.Drawing.Size(100, 20);
             this.managerPortField.TabIndex = 23;
+            this.managerPortField.Text = "8002";
             // 
             // label7
             // 
@@ -302,11 +305,22 @@
             this.label10.TabIndex = 33;
             this.label10.Text = "Port";
             // 
+            // forceSend
+            // 
+            this.forceSend.Location = new System.Drawing.Point(185, 51);
+            this.forceSend.Name = "forceSend";
+            this.forceSend.Size = new System.Drawing.Size(162, 35);
+            this.forceSend.TabIndex = 39;
+            this.forceSend.Text = "Wyślij tekst na danym porcie, VPI i VCI";
+            this.forceSend.UseVisualStyleBackColor = true;
+            this.forceSend.Click += new System.EventHandler(this.forceSend_Click);
+            // 
             // Clientix
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(585, 285);
+            this.Controls.Add(this.forceSend);
             this.Controls.Add(this.outVCITextBox);
             this.Controls.Add(this.outVPITextBox);
             this.Controls.Add(this.outPortTextBox);
@@ -372,6 +386,7 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Button forceSend;
     }
 }
 
