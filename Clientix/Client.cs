@@ -100,8 +100,11 @@ namespace Clientix {
                     netStream = new NetworkStream(cloudSocket);
                     PortVPIVCI temp;
                     if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
-                        SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + int.Parse(outPortTextBox.Text) + ";" +
-                                            int.Parse(outVPITextBox.Text) + ";" + int.Parse(outVCITextBox.Text) + "]\n");
+                        SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + temp.port + ";" +
+                                            temp.VPI + ";" + temp.VCI + "] o treści: " + Packet.AAL.GetStringFromBytes(packet.payload)+"\n");
+                        packet.port = temp.port;
+                        packet.VPI = temp.VPI;
+                        packet.VCI = temp.VCI;
                         BinaryFormatter bformatter = new BinaryFormatter();
                         bformatter.Serialize(netStream, packet);
                         netStream.Close();
@@ -211,7 +214,7 @@ namespace Clientix {
                     }
                 }
                 if (isNameFound) {
-                    SetText("tempName : ");
+                    SetText(tempName+ " :  ");
                 } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
 
                 // gdy wiadomość zawarta jest w jednym pakiecie
