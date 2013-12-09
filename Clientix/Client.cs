@@ -393,6 +393,7 @@ namespace Clientix {
             try {
                 username = clientName;
                 usernameField.Text = clientName;
+                isClientNameSet = true;
                 SetText("Ustalam nazwę klienta jako " + username + "\n");
                 String path = "config" + username + ".txt";
                 otherClients = new List<String>();
