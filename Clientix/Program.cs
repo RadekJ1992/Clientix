@@ -10,10 +10,18 @@ namespace Clientix {
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main() {
+        static void Main(String[] args) {
+            String clientName;
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Clientix());
+            Clientix c = new Clientix();
+            if (args != null) {
+                try {
+                    clientName = args[0];
+                    c.readConfig(clientName);
+                } catch { }
+            }
+            Application.Run(c);
         }
     }
 }

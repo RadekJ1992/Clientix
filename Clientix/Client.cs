@@ -89,7 +89,9 @@ namespace Clientix {
             isLoggedToManager = false;
             otherClients = new List<string>();
             VCArray = new Dictionary<String, PortVPIVCI>();
-            selectedClientBox.DataSource = otherClients;
+
+            //setOtherClients(otherClients);
+            //selectedClientBox.DataSource = otherClients;
         }
 
         private void sendMessage(object sender, EventArgs e) {
@@ -143,7 +145,7 @@ namespace Clientix {
                         receiveThread = new Thread(this.receiver);
                         receiveThread.IsBackground = true;
                         receiveThread.Start();
-                    } catch (SocketException ex) {
+                    } catch (SocketException) {
                         isConnectedToCloud = false;
                         log.AppendText("Błąd podczas łączenia się z chmurą\n");
                         log.AppendText("Złe IP lub port? Chmura nie działa?\n");
@@ -178,7 +180,7 @@ namespace Clientix {
                         agent.writeThread.Start();
                         agent.writeThread.IsBackground = true;
                         agent.sendLoginC = true;
-                    } catch (SocketException ex) {
+                    } catch (SocketException) {
                         isConnectedToManager = false;
                         log.AppendText("Błąd podczas łączenia się z zarządcą!\n");
                         log.AppendText("Złe IP lub port? Zarządca nie działa?\n");
@@ -382,7 +384,55 @@ namespace Clientix {
                 sendText.Enabled = false;
             }
         }
-
+        public void readConfig(String clientName) {
+            try {
+                username = clientName;
+                usernameField.Text = clientName;
+                SetText("Ustalam nazwę klienta jako " + username + "\n");
+                String path = "config" + username + ".txt";
+                List<String> otherClients = new List<String>();
+                using (StreamReader sr = new StreamReader(path)) {
+                    string[] lines = System.IO.File.ReadAllLines(path);
+                    foreach (String line in lines) {
+                        String[] command = line.Split(' ');
+                        if (command[0] == "ADD_CONNECTION") {
+                            try {
+                                VCArray.Add(command[1], new PortVPIVCI(int.Parse(command[2]), int.Parse(command[3]), int.Parse(command[4])));
+                                if (!otherClients.Contains(command[1])) {
+                                    otherClients.Add(command[1]);
+                                    SetText("Dodaję klienta " + command[1] + "\n");
+                                }
+                                SetText("Dodaję połączenie z klientem " + command[1] + " na porcie " 
+                                    + command[2] + " VPI " + command[3] + " VCI " + command[4] + "\n");
+                            } catch (IndexOutOfRangeException) {
+                                SetText("Komenda została niepoprawnie sformułowana (za mało parametrów)\n");
+                            }
+                        } else if (command[0] == "ADD_CLIENT") {
+                            try {
+                                otherClients.Add(command[1]);
+                                SetText("Dodaję klienta " + command[1] + "\n");
+                            } catch (IndexOutOfRangeException) {
+                                SetText("Komenda została niepoprawnie sformułowana (za mało parametrów)\n");
+                            }
+                        }
+                    }
+                }
+                //setOtherClients(tempOtherClients); 
+                /*
+                String tempSelCl = (String)selectedClientBox.SelectedItem;
+                if (VCArray.ContainsKey(tempSelCl)) {
+                    disconnectWithClient.Enabled = true;
+                    sendText.Enabled = true;
+                } else {
+                    disconnectWithClient.Enabled = false;
+                    sendText.Enabled = false;
+                }*/
+            } catch (Exception exc) {
+                SetText("Błąd podczas konfigurowania pliku konfiguracyjnego\n");
+                SetText(exc.Message + "\n");
+            }
+        }
+    
         private void forceSend_Click(object sender, EventArgs e) {
             packetsFromString = Packet.AAL.getATMPackets(enteredTextField.Text);
             if (!isConnectedToCloud) log.AppendText("Nie jestem połączony z chmurą!!");
