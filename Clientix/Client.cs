@@ -68,14 +68,15 @@ namespace Clientix {
         //tablica innych węzłów klienckich podłączonych do sieci otrzymana do zarządcy
         public List<String> otherClients { get; set; }
 
+        private bool isFirstMouseEnter;
         //słownik klientów, z którymi mamy połączenie i odpowiadających im komvinacji port,vpi,vci
         public Dictionary<String, PortVPIVCI> VCArray { get; set; }
 
         private Agentix agent; //agent zarządzania
 
         public Clientix() {
-            InitializeComponent();
 
+            InitializeComponent();
             //tooltip dla nazwy klienta
             System.Windows.Forms.ToolTip toolTip = new System.Windows.Forms.ToolTip();
             toolTip.SetToolTip(this.label7, "Nazwa klienta może zawierać litery, cyfry i znak '_'");
@@ -85,13 +86,13 @@ namespace Clientix {
             toolTip.ReshowDelay = 500;
             toolTip.ShowAlways = true;
 
-            isClientNameSet = false;
-            isLoggedToManager = false;
             otherClients = new List<string>();
             VCArray = new Dictionary<String, PortVPIVCI>();
+            isFirstMouseEnter = true;
+            isClientNameSet = false;
+            isLoggedToManager = false;
 
-            //setOtherClients(otherClients);
-            //selectedClientBox.DataSource = otherClients;
+            selectedClientBox.DataSource = otherClients;
         }
 
         private void sendMessage(object sender, EventArgs e) {
@@ -312,13 +313,15 @@ namespace Clientix {
             });
         }
         private void connectWithClientButton_Click(object sender, EventArgs e) {
-            if ((String)selectedClientBox.SelectedItem != null) {
-                String clientName = (String)selectedClientBox.SelectedItem;
-                agent.whoIsCalled = clientName;
-                agent.sendCall = true;
-                SetText("Wysłano żądanie nawiązania połączenia z " + clientName + "\n");
-            } else {
-                SetText("Nie wybrano klienta\n");
+            if (agent != null) {
+                if ((String)selectedClientBox.SelectedItem != null) {
+                    String clientName = (String)selectedClientBox.SelectedItem;
+                    agent.whoIsCalled = clientName;
+                    agent.sendCall = true;
+                    SetText("Wysłano żądanie nawiązania połączenia z " + clientName + "\n");
+                } else {
+                    SetText("Nie wybrano klienta\n");
+                }
             }
         }
 
@@ -370,8 +373,10 @@ namespace Clientix {
         }
 
         private void disconnectWithClient_Click(object sender, EventArgs e) {
-            agent.whoToDisconnect = ((String)selectedClientBox.SelectedItem);
-            agent.sendDisconnect = true;
+            if (agent != null) {
+                agent.whoToDisconnect = ((String)selectedClientBox.SelectedItem);
+                agent.sendDisconnect = true;
+            }
         }
 
         private void selectedClientBoxs_SelectedIndexChanged(object sender, EventArgs e) {
@@ -390,7 +395,7 @@ namespace Clientix {
                 usernameField.Text = clientName;
                 SetText("Ustalam nazwę klienta jako " + username + "\n");
                 String path = "config" + username + ".txt";
-                List<String> otherClients = new List<String>();
+                otherClients = new List<String>();
                 using (StreamReader sr = new StreamReader(path)) {
                     string[] lines = System.IO.File.ReadAllLines(path);
                     foreach (String line in lines) {
@@ -470,6 +475,13 @@ namespace Clientix {
             outPortTextBox.Clear();
             outVCITextBox.Clear();
             outVPITextBox.Clear();
+        }
+
+        private void selectedClientBox_MouseEnter(object sender, EventArgs e) {
+            if (isFirstMouseEnter) {
+            setOtherClients(otherClients);
+            isFirstMouseEnter = false;
+            }
         }
     }
     class Agentix {

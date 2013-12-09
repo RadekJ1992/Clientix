@@ -19,8 +19,8 @@ namespace Clientix {
                 try {
                     clientName = args[0];
                     c.readConfig(clientName);
-                } catch { }
-            }
+                } catch {}
+            } 
             Application.Run(c);
         }
     }

@@ -355,6 +355,7 @@
             this.MinimumSize = new System.Drawing.Size(601, 323);
             this.Name = "Clientix";
             this.Text = "Clientix";
+            this.MouseEnter += new System.EventHandler(this.selectedClientBox_MouseEnter);
             this.ResumeLayout(false);
             this.PerformLayout();
 
