@@ -48,6 +48,7 @@ namespace Clientix {
         private Socket cloudSocket;
         public Socket managerSocket { get; private set; }
 
+        private int tempMid;
         //nazwa klienta
         public String username { get; set; }
 
@@ -77,6 +78,7 @@ namespace Clientix {
 
         public Clientix() {
             isDisconnect = false;
+            tempMid = 0; 
             InitializeComponent();
             //tooltip dla nazwy klienta
             System.Windows.Forms.ToolTip toolTip = new System.Windows.Forms.ToolTip();
@@ -206,7 +208,6 @@ namespace Clientix {
                 BinaryFormatter bf = new BinaryFormatter();
                 receivedPacket = (Packet.ATMPacket)bf.Deserialize(networkStream);
                 int tempSeq = 0;
-                int tempMid = 0;
 
                 PortVPIVCI temp = new PortVPIVCI(receivedPacket.port, receivedPacket.VPI, receivedPacket.VCI);
                 String tempName = "";
@@ -219,19 +220,30 @@ namespace Clientix {
                         isNameFound = true;
                     }
                 }
+                /*
                 if (isNameFound) {
                     SetText(tempName+ " :  ");
                 } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
-
+                */
                 // gdy wiadomość zawarta jest w jednym pakiecie
                 if (receivedPacket.PacketType == Packet.ATMPacket.AALType.SSM) {
+                    if (isNameFound) {
+                        SetText(tempName + " :  ");
+                    } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
                     SetText(Packet.AAL.getStringFromPacket(receivedPacket) + "\n");
+                    tempMid = 0;
                 }
                 else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.BOM) {
+                    if (isNameFound) {
+                        SetText(tempName + " :  ");
+                    } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
                     tempSeq = 0;
                     tempMid = receivedPacket.AALMid;
+                    SetText(Packet.AAL.getStringFromPacket(receivedPacket));
+                    /*
                     queuedReceivedPackets.Clear();
                     queuedReceivedPackets.Enqueue(receivedPacket);
+                    */
                 }
                 else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.COM) {
                     if (receivedPacket.AALMid == tempMid) {
@@ -239,20 +251,26 @@ namespace Clientix {
 
                         //usun tempmid
                         if (receivedPacket.AALSeq == ++tempSeq) {
-                            queuedReceivedPackets.Enqueue(receivedPacket);
+                            SetText(Packet.AAL.getStringFromPacket(receivedPacket));
+                            //queuedReceivedPackets.Enqueue(receivedPacket);
                         }
                         else {
-                            SetText("Stracono po drodze pakiet! :< Wartość AALSeq nie wzrosła o 1!\n");
+                            //SetText("\nPakiet ma inny AALSeq niż powinien mieć, pakiety przyszły w innej kolejności!\n");
+                            SetText(Packet.AAL.getStringFromPacket(receivedPacket));
                         }
                     }
                     else {
-                        SetText("Pakiet z innej wiadomości! Inne AALMid!");
+                        //SetText("\nPakiet z innej wiadomości! Inne AALMid!\n");
+                        SetText("\n" + tempName + " : " + Packet.AAL.getStringFromPacket(receivedPacket));
                     }
                 }
                 else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.EOM) {
+                    /*
                     queuedReceivedPackets.Enqueue(receivedPacket);
                     SetText(Packet.AAL.getStringFromPackets(queuedReceivedPackets));
                     queuedReceivedPackets.Clear();
+                     */
+                    SetText(Packet.AAL.getStringFromPacket(receivedPacket) + "\n");
                     tempSeq = 0;
                     tempMid = 0;
                 }
