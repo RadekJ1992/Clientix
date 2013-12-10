@@ -52,6 +52,8 @@
             this.label9 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.forceSend = new System.Windows.Forms.Button();
+            this.DisconnectButton = new System.Windows.Forms.Button();
+            this.SaveConfigButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // enteredTextField
@@ -125,7 +127,7 @@
             this.log.Name = "log";
             this.log.ReadOnly = true;
             this.log.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.log.Size = new System.Drawing.Size(333, 185);
+            this.log.Size = new System.Drawing.Size(333, 153);
             this.log.TabIndex = 12;
             // 
             // sendText
@@ -315,11 +317,33 @@
             this.forceSend.UseVisualStyleBackColor = true;
             this.forceSend.Click += new System.EventHandler(this.forceSend_Click);
             // 
+            // DisconnectButton
+            // 
+            this.DisconnectButton.Location = new System.Drawing.Point(187, 251);
+            this.DisconnectButton.Name = "DisconnectButton";
+            this.DisconnectButton.Size = new System.Drawing.Size(162, 26);
+            this.DisconnectButton.TabIndex = 40;
+            this.DisconnectButton.Text = "Rozłącz";
+            this.DisconnectButton.UseVisualStyleBackColor = true;
+            this.DisconnectButton.Click += new System.EventHandler(this.DisconnectButton_Click);
+            // 
+            // SaveConfigButton
+            // 
+            this.SaveConfigButton.Location = new System.Drawing.Point(15, 251);
+            this.SaveConfigButton.Name = "SaveConfigButton";
+            this.SaveConfigButton.Size = new System.Drawing.Size(162, 26);
+            this.SaveConfigButton.TabIndex = 41;
+            this.SaveConfigButton.Text = "Zapisz konfigurację do pliku";
+            this.SaveConfigButton.UseVisualStyleBackColor = true;
+            this.SaveConfigButton.Click += new System.EventHandler(this.SaveConfigButton_Click);
+            // 
             // Clientix
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(585, 285);
+            this.Controls.Add(this.SaveConfigButton);
+            this.Controls.Add(this.DisconnectButton);
             this.Controls.Add(this.forceSend);
             this.Controls.Add(this.outVCITextBox);
             this.Controls.Add(this.outVPITextBox);
@@ -392,6 +416,8 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Button forceSend;
+        private System.Windows.Forms.Button DisconnectButton;
+        private System.Windows.Forms.Button SaveConfigButton;
     }
 }
 

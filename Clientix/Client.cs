@@ -59,6 +59,7 @@ namespace Clientix {
         //do wysyłania
         private NetworkStream netStream;
 
+        public bool isDisconnect;
         public bool isRunning { get; private set; }     //info czy klient chodzi - dla zarządcy
 
         private bool isClientNameSet;
@@ -75,7 +76,7 @@ namespace Clientix {
         private Agentix agent; //agent zarządzania
 
         public Clientix() {
-
+            isDisconnect = false;
             InitializeComponent();
             //tooltip dla nazwy klienta
             System.Windows.Forms.ToolTip toolTip = new System.Windows.Forms.ToolTip();
@@ -235,6 +236,8 @@ namespace Clientix {
                 else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.COM) {
                     if (receivedPacket.AALMid == tempMid) {
                         //sprawdza kolejnosc AALSeq
+
+                        //usun tempmid
                         if (receivedPacket.AALSeq == ++tempSeq) {
                             queuedReceivedPackets.Enqueue(receivedPacket);
                         }
@@ -256,11 +259,15 @@ namespace Clientix {
                 //networkStream.Close();
                 receiver();
             } catch (Exception e){
-                SetText("Coś poszło nie tak : " + e.Message + "\n");
-                cloudSocket = null;
-                cloudEndPoint = null;
-                networkStream = null;
-                isConnectedToCloud = false;
+                if (isDisconnect) { 
+                    SetText("Rozłączam się z chmurą!\n"); isDisconnect = false; networkStream = null; 
+                } else {
+                    SetText("Coś poszło nie tak : " + e.Message + "\n");
+                    cloudSocket = null;
+                    cloudEndPoint = null;
+                    networkStream = null;
+                    isConnectedToCloud = false;
+                }
             }
         }
 
@@ -333,7 +340,12 @@ namespace Clientix {
             } else {
                 foreach (String name in otherClients) {
                     if (name == clientName) {
-                        VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                        if (!VCArray.ContainsKey(clientName)) {
+                            VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                        } else {
+                            VCArray.Remove(clientName);
+                            VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                        }
                     }
                     //sprawdza przy okazji czy połączenie zostało nawiązane z aktualnie zaznaczonym klientem - jeśli tak - aktywuje możliwość wysyłania wiadomości
                     String tempSelCl = "";
@@ -484,6 +496,34 @@ namespace Clientix {
             isFirstMouseEnter = false;
             }
         }
+
+        private void SaveConfigButton_Click(object sender, EventArgs e) {
+            saveConfig();
+        }
+
+        private void saveConfig() {
+            if (username != null) {
+                List<String> lines = new List<String>();
+                foreach (String client in VCArray.Keys) {
+                    PortVPIVCI value;
+                    if (VCArray.TryGetValue(client, out value)) lines.Add("ADD_CONNECTION " + client +
+                                                                        " " + value.port + " " + value.VPI + " " + value.VCI);
+                }
+                foreach (String client in otherClients) {
+                    if (!VCArray.ContainsKey(client)) lines.Add("ADD_CLIENT " + client);
+                }
+                System.IO.File.WriteAllLines("config" + username + ".txt", lines);
+                SetText("Zapisuję ustawienia do pliku config" + username + ".txt\n");
+            } else SetText("Ustal nazwę klienta!\n");
+        }
+
+        private void DisconnectButton_Click(object sender, EventArgs e) {
+            isDisconnect = true;
+            isConnectedToCloud = false;
+            isConnectedToManager = false;
+            if (cloudSocket != null) cloudSocket.Close();
+            if (managerSocket != null) managerSocket.Close();
+        }
     }
     class Agentix {
         StreamReader read = null;
@@ -603,11 +643,19 @@ namespace Clientix {
                         }
                     }
                 } catch (Exception e) {
-                    parent.SetText(e.Message+"\n");
-                    parent.SetText("Problem w połączeniu się z zarządcą :<\n");
-                    parent.isConnectedToManager = false;
-                    writeThread.Abort();
-                    readThread.Abort();
+                    if (parent.isDisconnect) {
+                        parent.SetText("Rozłączam się z zarządcą!\n");
+                        parent.isConnectedToManager = false;
+                        writeThread.Abort();
+                        readThread.Abort();
+                        parent.isDisconnect = false;
+                    } else {
+                        parent.SetText(e.Message + "\n");
+                        parent.SetText("Problem w połączeniu się z zarządcą :<\n");
+                        parent.isConnectedToManager = false;
+                        writeThread.Abort();
+                        readThread.Abort();
+                    }
                 }
             }
         }
