@@ -45,13 +45,6 @@
             this.connectWithClientButton = new System.Windows.Forms.Button();
             this.disconnectWithClient = new System.Windows.Forms.Button();
             this.selectedClientBox = new System.Windows.Forms.ComboBox();
-            this.outVCITextBox = new System.Windows.Forms.TextBox();
-            this.outVPITextBox = new System.Windows.Forms.TextBox();
-            this.outPortTextBox = new System.Windows.Forms.TextBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.forceSend = new System.Windows.Forms.Button();
             this.DisconnectButton = new System.Windows.Forms.Button();
             this.SaveConfigButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
@@ -60,7 +53,7 @@
             // 
             this.enteredTextField.Location = new System.Drawing.Point(15, 25);
             this.enteredTextField.Name = "enteredTextField";
-            this.enteredTextField.Size = new System.Drawing.Size(194, 20);
+            this.enteredTextField.Size = new System.Drawing.Size(334, 20);
             this.enteredTextField.TabIndex = 0;
             this.enteredTextField.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.sendMessage_KeyPress);
             // 
@@ -135,7 +128,7 @@
             this.sendText.Enabled = false;
             this.sendText.Location = new System.Drawing.Point(15, 51);
             this.sendText.Name = "sendText";
-            this.sendText.Size = new System.Drawing.Size(162, 35);
+            this.sendText.Size = new System.Drawing.Size(334, 35);
             this.sendText.TabIndex = 13;
             this.sendText.Text = "Wyślij tekst do zaznaczonego klienta";
             this.sendText.UseVisualStyleBackColor = true;
@@ -259,71 +252,13 @@
             this.selectedClientBox.TabIndex = 30;
             this.selectedClientBox.SelectedIndexChanged += new System.EventHandler(this.selectedClientBoxs_SelectedIndexChanged);
             // 
-            // outVCITextBox
-            // 
-            this.outVCITextBox.Location = new System.Drawing.Point(307, 25);
-            this.outVCITextBox.Name = "outVCITextBox";
-            this.outVCITextBox.Size = new System.Drawing.Size(40, 20);
-            this.outVCITextBox.TabIndex = 38;
-            // 
-            // outVPITextBox
-            // 
-            this.outVPITextBox.Location = new System.Drawing.Point(261, 25);
-            this.outVPITextBox.Name = "outVPITextBox";
-            this.outVPITextBox.Size = new System.Drawing.Size(40, 20);
-            this.outVPITextBox.TabIndex = 37;
-            // 
-            // outPortTextBox
-            // 
-            this.outPortTextBox.Location = new System.Drawing.Point(215, 25);
-            this.outPortTextBox.Name = "outPortTextBox";
-            this.outPortTextBox.Size = new System.Drawing.Size(40, 20);
-            this.outPortTextBox.TabIndex = 36;
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(304, 9);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(24, 13);
-            this.label8.TabIndex = 35;
-            this.label8.Text = "VCI";
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(258, 9);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(24, 13);
-            this.label9.TabIndex = 34;
-            this.label9.Text = "VPI";
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(215, 9);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(26, 13);
-            this.label10.TabIndex = 33;
-            this.label10.Text = "Port";
-            // 
-            // forceSend
-            // 
-            this.forceSend.Location = new System.Drawing.Point(185, 51);
-            this.forceSend.Name = "forceSend";
-            this.forceSend.Size = new System.Drawing.Size(162, 35);
-            this.forceSend.TabIndex = 39;
-            this.forceSend.Text = "Wyślij tekst na danym porcie, VPI i VCI";
-            this.forceSend.UseVisualStyleBackColor = true;
-            this.forceSend.Click += new System.EventHandler(this.forceSend_Click);
-            // 
             // DisconnectButton
             // 
             this.DisconnectButton.Location = new System.Drawing.Point(187, 251);
             this.DisconnectButton.Name = "DisconnectButton";
             this.DisconnectButton.Size = new System.Drawing.Size(162, 26);
             this.DisconnectButton.TabIndex = 40;
-            this.DisconnectButton.Text = "Rozłącz";
+            this.DisconnectButton.Text = "Rozłącz z siecią";
             this.DisconnectButton.UseVisualStyleBackColor = true;
             this.DisconnectButton.Click += new System.EventHandler(this.DisconnectButton_Click);
             // 
@@ -344,13 +279,6 @@
             this.ClientSize = new System.Drawing.Size(585, 285);
             this.Controls.Add(this.SaveConfigButton);
             this.Controls.Add(this.DisconnectButton);
-            this.Controls.Add(this.forceSend);
-            this.Controls.Add(this.outVCITextBox);
-            this.Controls.Add(this.outVPITextBox);
-            this.Controls.Add(this.outPortTextBox);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.label9);
-            this.Controls.Add(this.label10);
             this.Controls.Add(this.disconnectWithClient);
             this.Controls.Add(this.connectWithClientButton);
             this.Controls.Add(this.selectedClientBox);
@@ -379,6 +307,7 @@
             this.MinimumSize = new System.Drawing.Size(601, 323);
             this.Name = "Clientix";
             this.Text = "Clientix";
+            this.Load += new System.EventHandler(this.Clientix_Load);
             this.MouseEnter += new System.EventHandler(this.selectedClientBox_MouseEnter);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -409,13 +338,6 @@
         private System.Windows.Forms.Button connectWithClientButton;
         private System.Windows.Forms.Button disconnectWithClient;
         private System.Windows.Forms.ComboBox selectedClientBox;
-        private System.Windows.Forms.TextBox outVCITextBox;
-        private System.Windows.Forms.TextBox outVPITextBox;
-        private System.Windows.Forms.TextBox outPortTextBox;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Button forceSend;
         private System.Windows.Forms.Button DisconnectButton;
         private System.Windows.Forms.Button SaveConfigButton;
     }

@@ -468,7 +468,7 @@ namespace Clientix {
                 SetText(exc.Message + "\n");
             }
         }
-    
+    /*
         private void forceSend_Click(object sender, EventArgs e) {
             packetsFromString = Packet.AAL.getATMPackets(enteredTextField.Text);
             if (!isConnectedToCloud) log.AppendText("Nie jestem połączony z chmurą!!");
@@ -506,7 +506,7 @@ namespace Clientix {
             outPortTextBox.Clear();
             outVCITextBox.Clear();
             outVPITextBox.Clear();
-        }
+        }*/
 
         private void selectedClientBox_MouseEnter(object sender, EventArgs e) {
             if (isFirstMouseEnter) {
@@ -541,6 +541,10 @@ namespace Clientix {
             isConnectedToManager = false;
             if (cloudSocket != null) cloudSocket.Close();
             if (managerSocket != null) managerSocket.Close();
+        }
+
+        private void Clientix_Load(object sender, EventArgs e) {
+
         }
     }
     class Agentix {
