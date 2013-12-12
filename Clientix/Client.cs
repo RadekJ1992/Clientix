@@ -406,6 +406,7 @@ namespace Clientix {
             if (agent != null) {
                 agent.whoToDisconnect = ((String)selectedClientBox.SelectedItem);
                 agent.sendDisconnect = true;
+                SetText("Wysyłam żądanie zerwania połączenia z " + ((String)selectedClientBox.SelectedItem) + "\n");
             }
         }
 
@@ -630,6 +631,7 @@ namespace Clientix {
                         parent.SetText("Zalogowano u zarządcy\n");
                     } else if (slowa[0] == "ESTABLISHED") {
                         parent.connectionEstablished(slowa[1], int.Parse(slowa[2]), int.Parse(slowa[3]), int.Parse(slowa[4]));
+                        
                     } else if (slowa[0] == "CLIENTS") {
                         List<String> listakl = new List<string>();
                         for (int i = 1; i < slowa.Length; i++) {
