@@ -307,7 +307,7 @@
             this.MinimumSize = new System.Drawing.Size(601, 323);
             this.Name = "Clientix";
             this.Text = "Clientix";
-            this.Load += new System.EventHandler(this.Clientix_Load);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Clientix_FormClosed);
             this.MouseEnter += new System.EventHandler(this.selectedClientBox_MouseEnter);
             this.ResumeLayout(false);
             this.PerformLayout();

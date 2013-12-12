@@ -543,8 +543,8 @@ namespace Clientix {
             if (managerSocket != null) managerSocket.Close();
         }
 
-        private void Clientix_Load(object sender, EventArgs e) {
-
+        private void Clientix_FormClosed(object sender, FormClosedEventArgs e) {
+            if (username != null) saveConfig();
         }
     }
     class Agentix {
