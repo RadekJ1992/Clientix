@@ -356,6 +356,10 @@ namespace Clientix {
                 ConnectionEstablishedCallback d = new ConnectionEstablishedCallback(connectionEstablished);
                 this.Invoke(d, new object[] { clientName, port, vpi, vci });
             } else {
+                if (otherClients.Count == 0) {
+                    otherClients.Add(clientName);
+                    VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                }
                 foreach (String name in otherClients) {
                     if (name == clientName) {
                         if (!VCArray.ContainsKey(clientName)) {
@@ -364,10 +368,13 @@ namespace Clientix {
                             VCArray.Remove(clientName);
                             VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
                         }
+                    } else {
+                        otherClients.Add(clientName);
+                        VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
                     }
                     //sprawdza przy okazji czy połączenie zostało nawiązane z aktualnie zaznaczonym klientem - jeśli tak - aktywuje możliwość wysyłania wiadomości
                     String tempSelCl = "";
-                    tempSelCl = (String)selectedClientBox.SelectedItem;
+                    if (selectedClientBox.SelectedItem != null) tempSelCl = (String)selectedClientBox.SelectedItem;
                     if (VCArray.ContainsKey(tempSelCl)) {
                             disconnectWithClient.Enabled = true;
                             sendText.Enabled = true;
@@ -630,8 +637,8 @@ namespace Clientix {
                         parent.isLoggedToManager = true;
                         parent.SetText("Zalogowano u zarządcy\n");
                     } else if (slowa[0] == "ESTABLISHED") {
+                        if (!parent.otherClients.Contains(slowa[1])) this.sendGetClients = true;
                         parent.connectionEstablished(slowa[1], int.Parse(slowa[2]), int.Parse(slowa[3]), int.Parse(slowa[4]));
-                        
                     } else if (slowa[0] == "CLIENTS") {
                         List<String> listakl = new List<string>();
                         for (int i = 1; i < slowa.Length; i++) {
