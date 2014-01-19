@@ -575,11 +575,11 @@ namespace Clientix {
                 int clientAddressNetwork = int.Parse(ClientNetworkNumberField.Text);
                 int clientAddressSubnet = int.Parse(ClientSubnetworkNumberField.Text);
                 int clientAddressHost = int.Parse(ClientHostNumberField.Text);
-                isClientAddressSet = true;
+                isClientNumberSet = true;
                 myAddress = new Address(clientAddressNetwork, clientAddressSubnet, clientAddressHost);
-                SetText(ęAdres klienta ustawiony jako " + myAddress.ToString() + "\n");
+                SetText("Adres klienta ustawiony jako " + myAddress.ToString() + "\n");
             } catch {
-                isClientAddressSet = false;
+                isClientNumberSet = false;
                 SetText("Błędne dane wejściowe\n");
             }
         }
