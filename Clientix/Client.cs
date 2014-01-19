@@ -1,4 +1,5 @@
-﻿using Packet;
+﻿using AddressLibrary;
+using Packet;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -45,6 +46,10 @@ namespace Clientix {
         private IPEndPoint cloudEndPoint;
         private IPEndPoint managerEndPoint;
 
+        private bool isClientNumberSet;
+
+        private Address myAddress;
+
         private Socket cloudSocket;
         public Socket managerSocket { get; private set; }
 
@@ -78,7 +83,8 @@ namespace Clientix {
 
         public Clientix() {
             isDisconnect = false;
-            tempMid = 0; 
+            tempMid = 0;
+            isClientNumberSet = false;
             InitializeComponent();
             //tooltip dla nazwy klienta
             System.Windows.Forms.ToolTip toolTip = new System.Windows.Forms.ToolTip();
@@ -127,7 +133,7 @@ namespace Clientix {
         }
 
         private void connectToCloud(object sender, EventArgs e) {
-            if (isClientNameSet) {
+            if (isClientNumberSet) {
                 if (!isConnectedToCloud) {
                     if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
                         log.AppendText("IP ustawiono jako " + cloudAddress.ToString() + " \n");
@@ -155,7 +161,7 @@ namespace Clientix {
                         log.AppendText("Złe IP lub port? Chmura nie działa?\n");
                     }
                 } else SetText("Klient jest już połączony z chmurą\n");
-            } else SetText("Ustaw nazwę klienta!\n");
+            } else SetText("Ustaw adres klienta!\n");
         }
 
         private void connectToManager(object sender, EventArgs e) {
@@ -199,7 +205,7 @@ namespace Clientix {
                 if (networkStream == null) {
                     networkStream = new NetworkStream(cloudSocket);
                     //tworzy string 'client ' i tu jego nazwę
-                    String welcomeString = "Client " + username;
+                    String welcomeString = "Client " + myAddress.ToString();
                     //tworzy tablicę bajtów z tego stringa
                     byte[] welcomeStringBytes = AAL.GetBytesFromString(welcomeString);
                     //wysyła tą tablicę bajtów streamem
@@ -358,33 +364,42 @@ namespace Clientix {
             } else {
                 if (otherClients.Count == 0) {
                     otherClients.Add(clientName);
-                    VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                    
+                        VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                    
                 }
-                foreach (String name in otherClients) {
-                    if (name == clientName) {
-                        if (!VCArray.ContainsKey(clientName)) {
-                            VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                try {
+                    foreach (String name in otherClients) {
+                        if (name == clientName) {
+                            if (!VCArray.ContainsKey(clientName)) {
+
+                                VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+
+                            } else {
+                                try {
+                                    VCArray.Remove(clientName);
+                                } catch { }
+                                VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+
+                            }
                         } else {
-                            VCArray.Remove(clientName);
+                            otherClients.Add(clientName);
                             VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
                         }
-                    } else {
-                        otherClients.Add(clientName);
-                        VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
-                    }
-                    //sprawdza przy okazji czy połączenie zostało nawiązane z aktualnie zaznaczonym klientem - jeśli tak - aktywuje możliwość wysyłania wiadomości
-                    String tempSelCl = "";
-                    if (selectedClientBox.SelectedItem != null) tempSelCl = (String)selectedClientBox.SelectedItem;
-                    if (VCArray.ContainsKey(tempSelCl)) {
+                        //sprawdza przy okazji czy połączenie zostało nawiązane z aktualnie zaznaczonym klientem - jeśli tak - aktywuje możliwość wysyłania wiadomości
+                        String tempSelCl = "";
+                        if (selectedClientBox.SelectedItem != null) tempSelCl = (String)selectedClientBox.SelectedItem;
+                        if (VCArray.ContainsKey(tempSelCl)) {
                             disconnectWithClient.Enabled = true;
                             sendText.Enabled = true;
-                    } else {
+                        } else {
                             disconnectWithClient.Enabled = false;
                             sendText.Enabled = false;
+                        }
+                        SetText("Połączenie z " + clientName + " zostało nawiązane!\n");
+                        this.Refresh();
                     }
-                    SetText("Połączenie z " + clientName + " zostało nawiązane!\n");
-                    this.Refresh();
-                }
+                } catch (InvalidOperationException) { } catch (ArgumentException) { }
             }
         }
 
@@ -553,6 +568,20 @@ namespace Clientix {
 
         private void Clientix_FormClosed(object sender, FormClosedEventArgs e) {
             if (username != null) saveConfig();
+        }
+
+        private void setClientNumber_Click(object sender, EventArgs e) {
+            try {
+                int clientAddressNetwork = int.Parse(ClientNetworkNumberField.Text);
+                int clientAddressSubnet = int.Parse(ClientSubnetworkNumberField.Text);
+                int clientAddressHost = int.Parse(ClientHostNumberField.Text);
+                isClientAddressSet = true;
+                myAddress = new Address(clientAddressNetwork, clientAddressSubnet, clientAddressHost);
+                SetText(ęAdres klienta ustawiony jako " + myAddress.ToString() + "\n");
+            } catch {
+                isClientAddressSet = false;
+                SetText("Błędne dane wejściowe\n");
+            }
         }
     }
     class Agentix {

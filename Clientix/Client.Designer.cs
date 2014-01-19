@@ -48,6 +48,11 @@
             this.selectedClientBox = new System.Windows.Forms.ComboBox();
             this.DisconnectButton = new System.Windows.Forms.Button();
             this.SaveConfigButton = new System.Windows.Forms.Button();
+            this.ClientHostNumberField = new System.Windows.Forms.TextBox();
+            this.ClientSubnetworkNumberField = new System.Windows.Forms.TextBox();
+            this.setClientNumber = new System.Windows.Forms.Button();
+            this.label8 = new System.Windows.Forms.Label();
+            this.ClientNetworkNumberField = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // enteredTextField
@@ -273,11 +278,56 @@
             this.SaveConfigButton.UseVisualStyleBackColor = true;
             this.SaveConfigButton.Click += new System.EventHandler(this.SaveConfigButton_Click);
             // 
+            // ClientHostNumberField
+            // 
+            this.ClientHostNumberField.Location = new System.Drawing.Point(647, 25);
+            this.ClientHostNumberField.Name = "ClientHostNumberField";
+            this.ClientHostNumberField.Size = new System.Drawing.Size(34, 20);
+            this.ClientHostNumberField.TabIndex = 46;
+            // 
+            // ClientSubnetworkNumberField
+            // 
+            this.ClientSubnetworkNumberField.Location = new System.Drawing.Point(614, 25);
+            this.ClientSubnetworkNumberField.Name = "ClientSubnetworkNumberField";
+            this.ClientSubnetworkNumberField.Size = new System.Drawing.Size(27, 20);
+            this.ClientSubnetworkNumberField.TabIndex = 45;
+            // 
+            // setClientNumber
+            // 
+            this.setClientNumber.Location = new System.Drawing.Point(581, 48);
+            this.setClientNumber.Name = "setClientNumber";
+            this.setClientNumber.Size = new System.Drawing.Size(100, 37);
+            this.setClientNumber.TabIndex = 44;
+            this.setClientNumber.Text = "Ustal numer klienta";
+            this.setClientNumber.UseVisualStyleBackColor = true;
+            this.setClientNumber.Click += new System.EventHandler(this.setClientNumber_Click);
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(581, 9);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(69, 13);
+            this.label8.TabIndex = 43;
+            this.label8.Text = "Adres Klienta";
+            // 
+            // ClientNetworkNumberField
+            // 
+            this.ClientNetworkNumberField.Location = new System.Drawing.Point(581, 25);
+            this.ClientNetworkNumberField.Name = "ClientNetworkNumberField";
+            this.ClientNetworkNumberField.Size = new System.Drawing.Size(27, 20);
+            this.ClientNetworkNumberField.TabIndex = 42;
+            // 
             // Clientix
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(585, 285);
+            this.ClientSize = new System.Drawing.Size(689, 285);
+            this.Controls.Add(this.ClientHostNumberField);
+            this.Controls.Add(this.ClientSubnetworkNumberField);
+            this.Controls.Add(this.setClientNumber);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.ClientNetworkNumberField);
             this.Controls.Add(this.SaveConfigButton);
             this.Controls.Add(this.DisconnectButton);
             this.Controls.Add(this.disconnectWithClient);
@@ -304,7 +354,6 @@
             this.Controls.Add(this.enteredTextField);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(601, 323);
             this.MinimizeBox = false;
             this.MinimumSize = new System.Drawing.Size(601, 323);
             this.Name = "Clientix";
@@ -342,6 +391,11 @@
         private System.Windows.Forms.ComboBox selectedClientBox;
         private System.Windows.Forms.Button DisconnectButton;
         private System.Windows.Forms.Button SaveConfigButton;
+        private System.Windows.Forms.TextBox ClientHostNumberField;
+        private System.Windows.Forms.TextBox ClientSubnetworkNumberField;
+        private System.Windows.Forms.Button setClientNumber;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox ClientNetworkNumberField;
     }
 }
 
