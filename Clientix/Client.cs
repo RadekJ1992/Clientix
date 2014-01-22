@@ -84,7 +84,7 @@ namespace Clientix {
         private Queue _whatToSendQueue;
         private Queue whatToSendQueue;
 
-
+        private string userToBeCalled;
 
         // do odbierania
         private NetworkStream networkStream;
@@ -133,7 +133,14 @@ namespace Clientix {
             routeList = new List<Route>();
             _whatToSendQueue = new Queue();
             whatToSendQueue = Queue.Synchronized(_whatToSendQueue);
-
+            List<int> speedList = new List<int>();
+            speedList = new List<int>();
+            speedList.Add(2);
+            speedList.Add(6);
+            speedList.Add(10);
+            BindingSource bs = new BindingSource();
+            bs.DataSource = speedList;
+            clientSpeedBox.DataSource = bs;
             selectedClientBox.DataSource = otherClients;
         }
 
@@ -345,10 +352,17 @@ namespace Clientix {
 
         private void setUsernameButton_Click(object sender, EventArgs e) {
             if (!usernameField.Text.Equals("")) {
-                if (Regex.IsMatch(usernameField.Text, "^[a-zA-Z0-9_]+$")) {
-                    username = usernameField.Text;
-                    isClientNameSet = true;
-                    SetText("Nazwa klienta ustawiona jako " + username + "\n");
+                if (isConnectedToControlCloud) {
+                    if (Regex.IsMatch(usernameField.Text, "^[a-zA-Z0-9_]+$")) {
+                        username = usernameField.Text;
+                        List<String> _msgList = new List<String>();
+                        _msgList.Add("LOGIN");
+                        _msgList.Add(username);
+                        _msgList.Add(myAddress.ToString());
+                        SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 0).ToString(), _msgList);
+                        whatToSendQueue.Enqueue(welcomePacket);
+                        SetText("Nazwa klienta ustawiona jako " + username + "\n");
+                    } else SetText("Połącz z chmurą zarządania!\n");
                 } else this.SetText("Dawaj jakąś ludzką nazwę (dozwolone tylko litery, cyfry i znak '_')\n");
             } else {
                 SetText("Dawaj jakąś ludzką nazwę (dozwolone tylko litery, cyfry i znak '_')\n");
@@ -357,8 +371,10 @@ namespace Clientix {
         }
 
         private void getOtherClients_Click(object sender, EventArgs e) {
-            if (agent != null)
-            agent.sendGetClients = true;
+            if (agent != null) agent.sendGetClients = true;
+            if (isConnectedToControlCloud) {
+
+            }
         }
 
         public void setOtherClients(List<String> otherCl) {
@@ -383,6 +399,20 @@ namespace Clientix {
                     agent.whoIsCalled = clientName;
                     agent.sendCall = true;
                     SetText("Wysłano żądanie nawiązania połączenia z " + clientName + "\n");
+                } else {
+                    SetText("Nie wybrano klienta\n");
+                }
+            }
+            if (isConnectedToControlCloud) {
+                if ((String)selectedClientBox.SelectedItem != null) {
+                    String clientName = (String)selectedClientBox.SelectedItem;
+                    userToBeCalled = clientName;
+                    List<String> _msgList = new List<String>();
+                    _msgList.Add("REQ_CONN");
+                    _msgList.Add(userToBeCalled);
+                    _msgList.Add((string)clientSpeedBox.SelectedItem);
+                    SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 0).ToString(), _msgList);
+                    whatToSendQueue.Enqueue(welcomePacket);
                 } else {
                     SetText("Nie wybrano klienta\n");
                 }
@@ -689,17 +719,43 @@ namespace Clientix {
                     SPacket receivedPacket = (Packet.SPacket)bf.Deserialize(controlNetworkStream);
                     //_msg = reader.ReadLine();
                     SetText("Odczytano:\n" + receivedPacket.ToString() + "\n");
-                    /*
-                     * 
-                     * 
-                     * 
-                     * 
-                     *  tutaj przekazać pakiet do LRMA
-                     * 
-                     * 
-                     * 
-                     * 
-                     */
+
+                    if (receivedPacket.getParames()[0] == "OK" && receivedPacket.getSrc() == "0.0.0") {
+                        isClientNameSet = true;
+                    } else if (receivedPacket.getParames()[0] == "NAME_TAKEN" && receivedPacket.getSrc() == "0.0.0") {
+                        SetText("Nazwa użytkownika zajęta, wybierz inną!;");
+                        username = null;
+                    } else if (receivedPacket.getParames()[0] == "CLIENTS" && receivedPacket.getSrc() == "0.0.0") {
+                        List<string> _temp = receivedPacket.getParames();
+                        _temp.Remove("CLIENTS");
+                        setOtherClients(_temp);
+                    } else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "0.0.0") {
+                        Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
+                        /*
+                         * 
+                         * 
+                         * 
+                         * zadzwoń do NCC z tym adresem!
+                         * losuj liczbę identyfikującą połączenie
+                         * 
+                         * 
+                         */
+                    } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "0.0.0") {
+                        SetText("Nie masz uprawnień do wykonania takiego połączenia!\n");
+                        userToBeCalled = null;
+                    } else {
+                        /*
+                         * 
+                         * 
+                         * 
+                         * 
+                         *  tutaj przekazać pakiet do LRMA
+                         * 
+                         * 
+                         * 
+                         * 
+                         */
+                    }
                 } catch {
                     SetText("WUT");
                 }

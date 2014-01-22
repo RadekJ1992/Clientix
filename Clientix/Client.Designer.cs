@@ -58,6 +58,8 @@
             this.conLabel = new System.Windows.Forms.Label();
             this.controlCloudIPTextBox = new System.Windows.Forms.TextBox();
             this.conToCloudButton = new System.Windows.Forms.Button();
+            this.clientSpeedBox = new System.Windows.Forms.ComboBox();
+            this.label9 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // enteredTextField
@@ -266,23 +268,23 @@
             // 
             // ClientHostNumberField
             // 
-            this.ClientHostNumberField.Location = new System.Drawing.Point(666, 155);
+            this.ClientHostNumberField.Location = new System.Drawing.Point(666, 199);
             this.ClientHostNumberField.Name = "ClientHostNumberField";
             this.ClientHostNumberField.Size = new System.Drawing.Size(34, 20);
             this.ClientHostNumberField.TabIndex = 46;
             // 
             // ClientSubnetworkNumberField
             // 
-            this.ClientSubnetworkNumberField.Location = new System.Drawing.Point(624, 157);
+            this.ClientSubnetworkNumberField.Location = new System.Drawing.Point(624, 199);
             this.ClientSubnetworkNumberField.Name = "ClientSubnetworkNumberField";
             this.ClientSubnetworkNumberField.Size = new System.Drawing.Size(36, 20);
             this.ClientSubnetworkNumberField.TabIndex = 45;
             // 
             // setClientNumber
             // 
-            this.setClientNumber.Location = new System.Drawing.Point(584, 183);
+            this.setClientNumber.Location = new System.Drawing.Point(584, 233);
             this.setClientNumber.Name = "setClientNumber";
-            this.setClientNumber.Size = new System.Drawing.Size(118, 44);
+            this.setClientNumber.Size = new System.Drawing.Size(115, 44);
             this.setClientNumber.TabIndex = 44;
             this.setClientNumber.Text = "Ustal numer klienta";
             this.setClientNumber.UseVisualStyleBackColor = true;
@@ -291,7 +293,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(582, 141);
+            this.label8.Location = new System.Drawing.Point(583, 183);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(69, 13);
             this.label8.TabIndex = 43;
@@ -299,7 +301,7 @@
             // 
             // ClientNetworkNumberField
             // 
-            this.ClientNetworkNumberField.Location = new System.Drawing.Point(582, 157);
+            this.ClientNetworkNumberField.Location = new System.Drawing.Point(582, 199);
             this.ClientNetworkNumberField.Name = "ClientNetworkNumberField";
             this.ClientNetworkNumberField.Size = new System.Drawing.Size(36, 20);
             this.ClientNetworkNumberField.TabIndex = 42;
@@ -361,17 +363,37 @@
             // 
             this.conToCloudButton.Location = new System.Drawing.Point(582, 92);
             this.conToCloudButton.Name = "conToCloudButton";
-            this.conToCloudButton.Size = new System.Drawing.Size(116, 43);
+            this.conToCloudButton.Size = new System.Drawing.Size(118, 43);
             this.conToCloudButton.TabIndex = 47;
             this.conToCloudButton.Text = "Połącz z chmurą sterowania";
             this.conToCloudButton.UseVisualStyleBackColor = true;
             this.conToCloudButton.Click += new System.EventHandler(this.conToCloudButton_Click);
+            // 
+            // clientSpeedBox
+            // 
+            this.clientSpeedBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.clientSpeedBox.FormattingEnabled = true;
+            this.clientSpeedBox.Location = new System.Drawing.Point(585, 157);
+            this.clientSpeedBox.Name = "clientSpeedBox";
+            this.clientSpeedBox.Size = new System.Drawing.Size(115, 21);
+            this.clientSpeedBox.TabIndex = 52;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(582, 141);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(96, 13);
+            this.label9.TabIndex = 53;
+            this.label9.Text = "Prędkość w Mbit/s";
             // 
             // Clientix
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(710, 285);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.clientSpeedBox);
             this.Controls.Add(this.controlCloudPortTextBox);
             this.Controls.Add(this.portLabel);
             this.Controls.Add(this.conLabel);
@@ -455,6 +477,8 @@
         private System.Windows.Forms.Label conLabel;
         private System.Windows.Forms.TextBox controlCloudIPTextBox;
         private System.Windows.Forms.Button conToCloudButton;
+        private System.Windows.Forms.ComboBox clientSpeedBox;
+        private System.Windows.Forms.Label label9;
     }
 }
 
