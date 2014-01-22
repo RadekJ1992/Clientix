@@ -42,10 +42,8 @@
             this.usernameField = new System.Windows.Forms.TextBox();
             this.setUsernameButton = new System.Windows.Forms.Button();
             this.getOtherClients = new System.Windows.Forms.Button();
-            this.label6 = new System.Windows.Forms.Label();
             this.connectWithClientButton = new System.Windows.Forms.Button();
             this.disconnectWithClient = new System.Windows.Forms.Button();
-            this.selectedClientBox = new System.Windows.Forms.ComboBox();
             this.DisconnectButton = new System.Windows.Forms.Button();
             this.SaveConfigButton = new System.Windows.Forms.Button();
             this.ClientHostNumberField = new System.Windows.Forms.TextBox();
@@ -53,6 +51,8 @@
             this.setClientNumber = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
             this.ClientNetworkNumberField = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.selectedClientBox = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // enteredTextField
@@ -218,15 +218,6 @@
             this.getOtherClients.UseVisualStyleBackColor = true;
             this.getOtherClients.Click += new System.EventHandler(this.getOtherClients_Click);
             // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(474, 141);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(73, 13);
-            this.label6.TabIndex = 29;
-            this.label6.Text = "Klienty w sieci";
-            // 
             // connectWithClientButton
             // 
             this.connectWithClientButton.Location = new System.Drawing.Point(477, 183);
@@ -247,16 +238,6 @@
             this.disconnectWithClient.Text = "Rozłącz z klientem";
             this.disconnectWithClient.UseVisualStyleBackColor = true;
             this.disconnectWithClient.Click += new System.EventHandler(this.disconnectWithClient_Click);
-            // 
-            // selectedClientBox
-            // 
-            this.selectedClientBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.selectedClientBox.FormattingEnabled = true;
-            this.selectedClientBox.Location = new System.Drawing.Point(477, 155);
-            this.selectedClientBox.Name = "selectedClientBox";
-            this.selectedClientBox.Size = new System.Drawing.Size(100, 21);
-            this.selectedClientBox.TabIndex = 30;
-            this.selectedClientBox.SelectedIndexChanged += new System.EventHandler(this.selectedClientBoxs_SelectedIndexChanged);
             // 
             // DisconnectButton
             // 
@@ -317,6 +298,25 @@
             this.ClientNetworkNumberField.Name = "ClientNetworkNumberField";
             this.ClientNetworkNumberField.Size = new System.Drawing.Size(27, 20);
             this.ClientNetworkNumberField.TabIndex = 42;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(474, 141);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(73, 13);
+            this.label6.TabIndex = 29;
+            this.label6.Text = "Klienty w sieci";
+            // 
+            // selectedClientBox
+            // 
+            this.selectedClientBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.selectedClientBox.FormattingEnabled = true;
+            this.selectedClientBox.Location = new System.Drawing.Point(477, 155);
+            this.selectedClientBox.Name = "selectedClientBox";
+            this.selectedClientBox.Size = new System.Drawing.Size(100, 21);
+            this.selectedClientBox.TabIndex = 30;
+            this.selectedClientBox.SelectedIndexChanged += new System.EventHandler(this.selectedClientBoxs_SelectedIndexChanged);
             // 
             // Clientix
             // 
@@ -385,10 +385,8 @@
         private System.Windows.Forms.TextBox usernameField;
         private System.Windows.Forms.Button setUsernameButton;
         private System.Windows.Forms.Button getOtherClients;
-        private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Button connectWithClientButton;
         private System.Windows.Forms.Button disconnectWithClient;
-        private System.Windows.Forms.ComboBox selectedClientBox;
         private System.Windows.Forms.Button DisconnectButton;
         private System.Windows.Forms.Button SaveConfigButton;
         private System.Windows.Forms.TextBox ClientHostNumberField;
@@ -396,6 +394,8 @@
         private System.Windows.Forms.Button setClientNumber;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TextBox ClientNetworkNumberField;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.ComboBox selectedClientBox;
     }
 }
 

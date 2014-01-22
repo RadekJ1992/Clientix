@@ -28,7 +28,18 @@ namespace Clientix {
         //otrzymany i wysyłany pakiets
         private Packet.ATMPacket receivedPacket;
         //private Packet.ATMPacket processedPacket;
+        private class Route {
+            public Address destAddr;
+            public int bandwidth;
+            public int port;
 
+            public Route(Address addr, int band, int port) {
+                destAddr = addr;
+                bandwidth = band;
+                this.port = port;
+            }
+        }
+        public List<Route> routeList;
         //kolejka pakietów stworzona z wysyłanej wiadomości
         private Queue<Packet.ATMPacket> packetsFromString;
 
@@ -100,6 +111,7 @@ namespace Clientix {
             isFirstMouseEnter = true;
             isClientNameSet = false;
             isLoggedToManager = false;
+            routeList = new List<Route>();
 
             selectedClientBox.DataSource = otherClients;
         }
@@ -473,6 +485,17 @@ namespace Clientix {
                             } catch (IndexOutOfRangeException) {
                                 SetText("Komenda została niepoprawnie sformułowana (za mało parametrów)\n");
                             }
+                        } else if (command[0] == "ADD_ROUTE") {
+                            Address adr;
+                            int port;
+                            int band;
+                            if (int.TryParse(command[1], out port)) {
+                                if (Address.TryParse(command[2], out adr)) {
+                                    if (int.TryParse(command[3], out band)) {
+                                        routeList.Add(new Route(adr,band,port);
+                                    } else SetText("Zły format danych\n");
+                                }else SetText("Zły format danych\n");
+                            }else SetText("Zły format danych\n");
                         }
                     }
                 }
