@@ -1,5 +1,7 @@
-﻿using Packet;
+﻿using AddressLibrary;
+using Packet;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -27,7 +29,18 @@ namespace Clientix {
         //otrzymany i wysyłany pakiets
         private Packet.ATMPacket receivedPacket;
         //private Packet.ATMPacket processedPacket;
+        public class Route {
+            public Address destAddr;
+            public int bandwidth;
+            public int port;
 
+            public Route(Address addr, int band, int port) {
+                destAddr = addr;
+                bandwidth = band;
+                this.port = port;
+            }
+        }
+        public List<Route> routeList;
         //kolejka pakietów stworzona z wysyłanej wiadomości
         private Queue<Packet.ATMPacket> packetsFromString;
 
@@ -45,6 +58,10 @@ namespace Clientix {
         private IPEndPoint cloudEndPoint;
         private IPEndPoint managerEndPoint;
 
+        private bool isClientNumberSet;
+
+        private Address myAddress;
+
         private Socket cloudSocket;
         public Socket managerSocket { get; private set; }
 
@@ -55,13 +72,31 @@ namespace Clientix {
         private Thread receiveThread;     //wątek służący do odbierania połączeń
         //private Thread sendThread;        // analogicznie - do wysyłania
 
+        //dane chmury
+        private IPAddress controlCloudAddress;        //Adres na którym chmura nasłuchuje
+        private Int32 controlCloudPort;           //port chmury
+        private IPEndPoint controlCloudEndPoint;
+        private Socket controlCloudSocket;
+
+        private Thread controlReceiveThread;     //wątek służący do odbierania połączeń
+        private Thread controlSendThread;        // analogicznie - do wysyłania
+
+        private Queue _whatToSendQueue;
+        private Queue whatToSendQueue;
+
+        private string userToBeCalled;
+
         // do odbierania
         private NetworkStream networkStream;
         //do wysyłania
         private NetworkStream netStream;
 
+        private NetworkStream controlNetworkStream; //dla sterowania
+
         public bool isDisconnect;
         public bool isRunning { get; private set; }     //info czy klient chodzi - dla zarządcy
+
+        public bool isConnectedToControlCloud { get; private set; }
 
         private bool isClientNameSet;
         public bool isConnectedToCloud { get; private set; } // czy połączony z chmurą?
@@ -78,7 +113,8 @@ namespace Clientix {
 
         public Clientix() {
             isDisconnect = false;
-            tempMid = 0; 
+            tempMid = 0;
+            isClientNumberSet = false;
             InitializeComponent();
             //tooltip dla nazwy klienta
             System.Windows.Forms.ToolTip toolTip = new System.Windows.Forms.ToolTip();
@@ -88,13 +124,23 @@ namespace Clientix {
             toolTip.InitialDelay = 500;
             toolTip.ReshowDelay = 500;
             toolTip.ShowAlways = true;
-
+            isConnectedToControlCloud = false;
             otherClients = new List<string>();
             VCArray = new Dictionary<String, PortVPIVCI>();
             isFirstMouseEnter = true;
             isClientNameSet = false;
             isLoggedToManager = false;
-
+            routeList = new List<Route>();
+            _whatToSendQueue = new Queue();
+            whatToSendQueue = Queue.Synchronized(_whatToSendQueue);
+            List<int> speedList = new List<int>();
+            speedList = new List<int>();
+            speedList.Add(2);
+            speedList.Add(6);
+            speedList.Add(10);
+            BindingSource bs = new BindingSource();
+            bs.DataSource = speedList;
+            clientSpeedBox.DataSource = bs;
             selectedClientBox.DataSource = otherClients;
         }
 
@@ -127,7 +173,7 @@ namespace Clientix {
         }
 
         private void connectToCloud(object sender, EventArgs e) {
-            if (isClientNameSet) {
+            if (isClientNumberSet) {
                 if (!isConnectedToCloud) {
                     if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
                         log.AppendText("IP ustawiono jako " + cloudAddress.ToString() + " \n");
@@ -155,7 +201,7 @@ namespace Clientix {
                         log.AppendText("Złe IP lub port? Chmura nie działa?\n");
                     }
                 } else SetText("Klient jest już połączony z chmurą\n");
-            } else SetText("Ustaw nazwę klienta!\n");
+            } else SetText("Ustaw adres klienta!\n");
         }
 
         private void connectToManager(object sender, EventArgs e) {
@@ -199,7 +245,7 @@ namespace Clientix {
                 if (networkStream == null) {
                     networkStream = new NetworkStream(cloudSocket);
                     //tworzy string 'client ' i tu jego nazwę
-                    String welcomeString = "Client " + username;
+                    String welcomeString = "Client " + myAddress.ToString();
                     //tworzy tablicę bajtów z tego stringa
                     byte[] welcomeStringBytes = AAL.GetBytesFromString(welcomeString);
                     //wysyła tą tablicę bajtów streamem
@@ -306,10 +352,17 @@ namespace Clientix {
 
         private void setUsernameButton_Click(object sender, EventArgs e) {
             if (!usernameField.Text.Equals("")) {
-                if (Regex.IsMatch(usernameField.Text, "^[a-zA-Z0-9_]+$")) {
-                    username = usernameField.Text;
-                    isClientNameSet = true;
-                    SetText("Nazwa klienta ustawiona jako " + username + "\n");
+                if (isConnectedToControlCloud) {
+                    if (Regex.IsMatch(usernameField.Text, "^[a-zA-Z0-9_]+$")) {
+                        username = usernameField.Text;
+                        List<String> _msgList = new List<String>();
+                        _msgList.Add("LOGIN");
+                        _msgList.Add(username);
+                        _msgList.Add(myAddress.ToString());
+                        SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 0).ToString(), _msgList);
+                        whatToSendQueue.Enqueue(welcomePacket);
+                        SetText("Nazwa klienta ustawiona jako " + username + "\n");
+                    } else SetText("Połącz z chmurą zarządania!\n");
                 } else this.SetText("Dawaj jakąś ludzką nazwę (dozwolone tylko litery, cyfry i znak '_')\n");
             } else {
                 SetText("Dawaj jakąś ludzką nazwę (dozwolone tylko litery, cyfry i znak '_')\n");
@@ -318,8 +371,10 @@ namespace Clientix {
         }
 
         private void getOtherClients_Click(object sender, EventArgs e) {
-            if (agent != null)
-            agent.sendGetClients = true;
+            if (agent != null) agent.sendGetClients = true;
+            if (isConnectedToControlCloud) {
+
+            }
         }
 
         public void setOtherClients(List<String> otherCl) {
@@ -348,6 +403,20 @@ namespace Clientix {
                     SetText("Nie wybrano klienta\n");
                 }
             }
+            if (isConnectedToControlCloud) {
+                if ((String)selectedClientBox.SelectedItem != null) {
+                    String clientName = (String)selectedClientBox.SelectedItem;
+                    userToBeCalled = clientName;
+                    List<String> _msgList = new List<String>();
+                    _msgList.Add("REQ_CONN");
+                    _msgList.Add(userToBeCalled);
+                    _msgList.Add((string)clientSpeedBox.SelectedItem);
+                    SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 0).ToString(), _msgList);
+                    whatToSendQueue.Enqueue(welcomePacket);
+                } else {
+                    SetText("Nie wybrano klienta\n");
+                }
+            }
         }
 
         //metoda wywołana gdy agent odbierze wiadomość ESTABLISHED clientNAME port vpi vci
@@ -356,28 +425,44 @@ namespace Clientix {
                 ConnectionEstablishedCallback d = new ConnectionEstablishedCallback(connectionEstablished);
                 this.Invoke(d, new object[] { clientName, port, vpi, vci });
             } else {
-                foreach (String name in otherClients) {
-                    if (name == clientName) {
-                        if (!VCArray.ContainsKey(clientName)) {
-                            VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                if (otherClients.Count == 0) {
+                    otherClients.Add(clientName);
+                    
+                        VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                    
+                }
+                try {
+                    foreach (String name in otherClients) {
+                        if (name == clientName) {
+                            if (!VCArray.ContainsKey(clientName)) {
+
+                                VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+
+                            } else {
+                                try {
+                                    VCArray.Remove(clientName);
+                                } catch { }
+                                VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+
+                            }
                         } else {
-                            VCArray.Remove(clientName);
+                            otherClients.Add(clientName);
                             VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
                         }
-                    }
-                    //sprawdza przy okazji czy połączenie zostało nawiązane z aktualnie zaznaczonym klientem - jeśli tak - aktywuje możliwość wysyłania wiadomości
-                    String tempSelCl = "";
-                    tempSelCl = (String)selectedClientBox.SelectedItem;
-                    if (VCArray.ContainsKey(tempSelCl)) {
+                        //sprawdza przy okazji czy połączenie zostało nawiązane z aktualnie zaznaczonym klientem - jeśli tak - aktywuje możliwość wysyłania wiadomości
+                        String tempSelCl = "";
+                        if (selectedClientBox.SelectedItem != null) tempSelCl = (String)selectedClientBox.SelectedItem;
+                        if (VCArray.ContainsKey(tempSelCl)) {
                             disconnectWithClient.Enabled = true;
                             sendText.Enabled = true;
-                    } else {
+                        } else {
                             disconnectWithClient.Enabled = false;
                             sendText.Enabled = false;
+                        }
+                        SetText("Połączenie z " + clientName + " zostało nawiązane!\n");
+                        this.Refresh();
                     }
-                    SetText("Połączenie z " + clientName + " zostało nawiązane!\n");
-                    this.Refresh();
-                }
+                } catch (InvalidOperationException) { } catch (ArgumentException) { }
             }
         }
 
@@ -406,6 +491,7 @@ namespace Clientix {
             if (agent != null) {
                 agent.whoToDisconnect = ((String)selectedClientBox.SelectedItem);
                 agent.sendDisconnect = true;
+                SetText("Wysyłam żądanie zerwania połączenia z " + ((String)selectedClientBox.SelectedItem) + "\n");
             }
         }
 
@@ -450,6 +536,17 @@ namespace Clientix {
                             } catch (IndexOutOfRangeException) {
                                 SetText("Komenda została niepoprawnie sformułowana (za mało parametrów)\n");
                             }
+                        } else if (command[0] == "ADD_ROUTE") {
+                            Address adr;
+                            int port;
+                            int band;
+                            if (int.TryParse(command[1], out port)) {
+                                if (Address.TryParse(command[2], out adr)) {
+                                    if (int.TryParse(command[3], out band)) {
+                                        routeList.Add(new Route(adr,band,port));
+                                    } else SetText("Zły format danych\n");
+                                }else SetText("Zły format danych\n");
+                            }else SetText("Zły format danych\n");
                         }
                     }
                 }
@@ -468,7 +565,7 @@ namespace Clientix {
                 SetText(exc.Message + "\n");
             }
         }
-    
+    /*
         private void forceSend_Click(object sender, EventArgs e) {
             packetsFromString = Packet.AAL.getATMPackets(enteredTextField.Text);
             if (!isConnectedToCloud) log.AppendText("Nie jestem połączony z chmurą!!");
@@ -506,7 +603,7 @@ namespace Clientix {
             outPortTextBox.Clear();
             outVCITextBox.Clear();
             outVPITextBox.Clear();
-        }
+        }*/
 
         private void selectedClientBox_MouseEnter(object sender, EventArgs e) {
             if (isFirstMouseEnter) {
@@ -530,6 +627,9 @@ namespace Clientix {
                 foreach (String client in otherClients) {
                     if (!VCArray.ContainsKey(client)) lines.Add("ADD_CLIENT " + client);
                 }
+                foreach (Route rt in routeList) {
+                    lines.Add("ADD_ROUTE " + rt.port + " " + rt.destAddr.ToString() + " " + rt.bandwidth);
+                }
                 System.IO.File.WriteAllLines("config" + username + ".txt", lines);
                 SetText("Zapisuję ustawienia do pliku config" + username + ".txt\n");
             } else SetText("Ustal nazwę klienta!\n");
@@ -541,6 +641,145 @@ namespace Clientix {
             isConnectedToManager = false;
             if (cloudSocket != null) cloudSocket.Close();
             if (managerSocket != null) managerSocket.Close();
+        }
+
+        private void Clientix_FormClosed(object sender, FormClosedEventArgs e) {
+            if (username != null) saveConfig();
+        }
+
+        private void setClientNumber_Click(object sender, EventArgs e) {
+            try {
+                int clientAddressNetwork = int.Parse(ClientNetworkNumberField.Text);
+                int clientAddressSubnet = int.Parse(ClientSubnetworkNumberField.Text);
+                int clientAddressHost = int.Parse(ClientHostNumberField.Text);
+                isClientNumberSet = true;
+                myAddress = new Address(clientAddressNetwork, clientAddressSubnet, clientAddressHost);
+                SetText("Adres klienta ustawiony jako " + myAddress.ToString() + "\n");
+            } catch {
+                isClientNumberSet = false;
+                SetText("Błędne dane wejściowe\n");
+            }
+        }
+
+        private void conToCloudButton_Click(object sender, EventArgs e) {
+            if (!isConnectedToControlCloud) {
+                if (isClientNumberSet) {
+                    if (IPAddress.TryParse(controlCloudIPTextBox.Text, out controlCloudAddress)) {
+                        SetText("IP ustawiono jako " + controlCloudAddress.ToString() + "\n");
+                    } else {
+                        SetText("Błąd podczas ustawiania IP chmury (zły format?)\n");
+                    }
+                    if (Int32.TryParse(controlCloudPortTextBox.Text, out controlCloudPort)) {
+                        SetText("Port chmury ustawiony jako " + controlCloudPort.ToString() + "\n");
+                    } else {
+                        SetText("Błąd podczas ustawiania portu chmury (zły format?)\n");
+                    }
+
+                    controlCloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    controlCloudEndPoint = new IPEndPoint(cloudAddress, cloudPort);
+                    try {
+                        controlCloudSocket.Connect(controlCloudEndPoint);
+                        isConnectedToControlCloud = true;
+                        controlNetworkStream = new NetworkStream(controlCloudSocket);
+                        List<String> _welcArr = new List<String>();
+                        _welcArr.Add("HELLO");
+                        SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 0).ToString(), _welcArr);
+                        whatToSendQueue.Enqueue(welcomePacket);
+                        //whatToSendQueue.Enqueue("HELLO " + myAddr);
+                        controlReceiveThread = new Thread(this.controlReceiver);
+                        controlReceiveThread.IsBackground = true;
+                        controlReceiveThread.Start();
+                        controlSendThread = new Thread(this.controlSender);
+                        controlSendThread.IsBackground = true;
+                        controlSendThread.Start();
+                        conToCloudButton.Text = "Rozłącz";
+                        SetText("Połączono!\n");
+                    } catch (SocketException) {
+                        isConnectedToControlCloud = false;
+                        SetText("Błąd podczas łączenia się z chmurą\n");
+                        SetText("Złe IP lub port? Chmura nie działa?\n");
+                    }
+                } else {
+                    SetText("Wprowadź numery sieci i podsieci\n");
+                }
+            } else {
+                isConnectedToCloud = false;
+                conToCloudButton.Text = "Połącz";
+                SetText("Rozłączono!\n");
+                if (cloudSocket != null) cloudSocket.Close();
+            }
+        }
+        /// <summary>
+        /// wątek odbierający wiadomości z chmury
+        /// </summary>
+        public void controlReceiver() {
+            while (isConnectedToControlCloud) {
+                BinaryFormatter bf = new BinaryFormatter();
+                try {
+                    SPacket receivedPacket = (Packet.SPacket)bf.Deserialize(controlNetworkStream);
+                    //_msg = reader.ReadLine();
+                    SetText("Odczytano:\n" + receivedPacket.ToString() + "\n");
+
+                    if (receivedPacket.getParames()[0] == "OK" && receivedPacket.getSrc() == "0.0.0") {
+                        isClientNameSet = true;
+                    } else if (receivedPacket.getParames()[0] == "NAME_TAKEN" && receivedPacket.getSrc() == "0.0.0") {
+                        SetText("Nazwa użytkownika zajęta, wybierz inną!;");
+                        username = null;
+                    } else if (receivedPacket.getParames()[0] == "CLIENTS" && receivedPacket.getSrc() == "0.0.0") {
+                        List<string> _temp = receivedPacket.getParames();
+                        _temp.Remove("CLIENTS");
+                        setOtherClients(_temp);
+                    } else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "0.0.0") {
+                        Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
+                        /*
+                         * 
+                         * 
+                         * 
+                         * zadzwoń do NCC z tym adresem!
+                         * losuj liczbę identyfikującą połączenie
+                         * 
+                         * 
+                         */
+                    } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "0.0.0") {
+                        SetText("Nie masz uprawnień do wykonania takiego połączenia!\n");
+                        userToBeCalled = null;
+                    } else {
+                        /*
+                         * 
+                         * 
+                         * 
+                         * 
+                         *  tutaj przekazać pakiet do LRMA
+                         * 
+                         * 
+                         * 
+                         * 
+                         */
+                    }
+                } catch {
+                    SetText("WUT");
+                }
+            }
+        }
+        /// <summary>
+        /// wątek wysyłający wiadomości do chmury
+        /// </summary>
+        public void controlSender() {
+            while (isConnectedToCloud) {
+                //jeśli coś jest w kolejce - zdejmij i wyślij
+                if (whatToSendQueue.Count != 0) {
+                    SPacket _pck = (SPacket)whatToSendQueue.Dequeue();
+                    BinaryFormatter bformatter = new BinaryFormatter();
+                    bformatter.Serialize(networkStream, _pck);
+                    networkStream.Flush();
+                    String[] _argsToShow = _pck.getParames().ToArray();
+                    String argsToShow = "";
+                    foreach (String str in _argsToShow) {
+                        argsToShow += str + " ";
+                    }
+                    SetText("Wysłano: " + _pck.getSrc() + ":" + _pck.getDest() + ":" + argsToShow + "\n");
+                }
+            }
         }
     }
     class Agentix {
@@ -625,6 +864,7 @@ namespace Clientix {
                         parent.isLoggedToManager = true;
                         parent.SetText("Zalogowano u zarządcy\n");
                     } else if (slowa[0] == "ESTABLISHED") {
+                        if (!parent.otherClients.Contains(slowa[1])) this.sendGetClients = true;
                         parent.connectionEstablished(slowa[1], int.Parse(slowa[2]), int.Parse(slowa[3]), int.Parse(slowa[4]));
                     } else if (slowa[0] == "CLIENTS") {
                         List<String> listakl = new List<string>();

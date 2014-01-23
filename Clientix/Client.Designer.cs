@@ -23,6 +23,7 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Clientix));
             this.enteredTextField = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -41,26 +42,31 @@
             this.usernameField = new System.Windows.Forms.TextBox();
             this.setUsernameButton = new System.Windows.Forms.Button();
             this.getOtherClients = new System.Windows.Forms.Button();
-            this.label6 = new System.Windows.Forms.Label();
             this.connectWithClientButton = new System.Windows.Forms.Button();
             this.disconnectWithClient = new System.Windows.Forms.Button();
-            this.selectedClientBox = new System.Windows.Forms.ComboBox();
-            this.outVCITextBox = new System.Windows.Forms.TextBox();
-            this.outVPITextBox = new System.Windows.Forms.TextBox();
-            this.outPortTextBox = new System.Windows.Forms.TextBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.forceSend = new System.Windows.Forms.Button();
             this.DisconnectButton = new System.Windows.Forms.Button();
             this.SaveConfigButton = new System.Windows.Forms.Button();
+            this.ClientHostNumberField = new System.Windows.Forms.TextBox();
+            this.ClientSubnetworkNumberField = new System.Windows.Forms.TextBox();
+            this.setClientNumber = new System.Windows.Forms.Button();
+            this.label8 = new System.Windows.Forms.Label();
+            this.ClientNetworkNumberField = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.selectedClientBox = new System.Windows.Forms.ComboBox();
+            this.controlCloudPortTextBox = new System.Windows.Forms.TextBox();
+            this.portLabel = new System.Windows.Forms.Label();
+            this.conLabel = new System.Windows.Forms.Label();
+            this.controlCloudIPTextBox = new System.Windows.Forms.TextBox();
+            this.conToCloudButton = new System.Windows.Forms.Button();
+            this.clientSpeedBox = new System.Windows.Forms.ComboBox();
+            this.label9 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // enteredTextField
             // 
             this.enteredTextField.Location = new System.Drawing.Point(15, 25);
             this.enteredTextField.Name = "enteredTextField";
-            this.enteredTextField.Size = new System.Drawing.Size(194, 20);
+            this.enteredTextField.Size = new System.Drawing.Size(334, 20);
             this.enteredTextField.TabIndex = 0;
             this.enteredTextField.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.sendMessage_KeyPress);
             // 
@@ -135,7 +141,7 @@
             this.sendText.Enabled = false;
             this.sendText.Location = new System.Drawing.Point(15, 51);
             this.sendText.Name = "sendText";
-            this.sendText.Size = new System.Drawing.Size(162, 35);
+            this.sendText.Size = new System.Drawing.Size(334, 35);
             this.sendText.TabIndex = 13;
             this.sendText.Text = "Wyślij tekst do zaznaczonego klienta";
             this.sendText.UseVisualStyleBackColor = true;
@@ -219,15 +225,6 @@
             this.getOtherClients.UseVisualStyleBackColor = true;
             this.getOtherClients.Click += new System.EventHandler(this.getOtherClients_Click);
             // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(474, 141);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(73, 13);
-            this.label6.TabIndex = 29;
-            this.label6.Text = "Klienty w sieci";
-            // 
             // connectWithClientButton
             // 
             this.connectWithClientButton.Location = new System.Drawing.Point(477, 183);
@@ -249,81 +246,13 @@
             this.disconnectWithClient.UseVisualStyleBackColor = true;
             this.disconnectWithClient.Click += new System.EventHandler(this.disconnectWithClient_Click);
             // 
-            // selectedClientBox
-            // 
-            this.selectedClientBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.selectedClientBox.FormattingEnabled = true;
-            this.selectedClientBox.Location = new System.Drawing.Point(477, 155);
-            this.selectedClientBox.Name = "selectedClientBox";
-            this.selectedClientBox.Size = new System.Drawing.Size(100, 21);
-            this.selectedClientBox.TabIndex = 30;
-            this.selectedClientBox.SelectedIndexChanged += new System.EventHandler(this.selectedClientBoxs_SelectedIndexChanged);
-            // 
-            // outVCITextBox
-            // 
-            this.outVCITextBox.Location = new System.Drawing.Point(307, 25);
-            this.outVCITextBox.Name = "outVCITextBox";
-            this.outVCITextBox.Size = new System.Drawing.Size(40, 20);
-            this.outVCITextBox.TabIndex = 38;
-            // 
-            // outVPITextBox
-            // 
-            this.outVPITextBox.Location = new System.Drawing.Point(261, 25);
-            this.outVPITextBox.Name = "outVPITextBox";
-            this.outVPITextBox.Size = new System.Drawing.Size(40, 20);
-            this.outVPITextBox.TabIndex = 37;
-            // 
-            // outPortTextBox
-            // 
-            this.outPortTextBox.Location = new System.Drawing.Point(215, 25);
-            this.outPortTextBox.Name = "outPortTextBox";
-            this.outPortTextBox.Size = new System.Drawing.Size(40, 20);
-            this.outPortTextBox.TabIndex = 36;
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(304, 9);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(24, 13);
-            this.label8.TabIndex = 35;
-            this.label8.Text = "VCI";
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(258, 9);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(24, 13);
-            this.label9.TabIndex = 34;
-            this.label9.Text = "VPI";
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(215, 9);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(26, 13);
-            this.label10.TabIndex = 33;
-            this.label10.Text = "Port";
-            // 
-            // forceSend
-            // 
-            this.forceSend.Location = new System.Drawing.Point(185, 51);
-            this.forceSend.Name = "forceSend";
-            this.forceSend.Size = new System.Drawing.Size(162, 35);
-            this.forceSend.TabIndex = 39;
-            this.forceSend.Text = "Wyślij tekst na danym porcie, VPI i VCI";
-            this.forceSend.UseVisualStyleBackColor = true;
-            this.forceSend.Click += new System.EventHandler(this.forceSend_Click);
-            // 
             // DisconnectButton
             // 
             this.DisconnectButton.Location = new System.Drawing.Point(187, 251);
             this.DisconnectButton.Name = "DisconnectButton";
             this.DisconnectButton.Size = new System.Drawing.Size(162, 26);
             this.DisconnectButton.TabIndex = 40;
-            this.DisconnectButton.Text = "Rozłącz";
+            this.DisconnectButton.Text = "Rozłącz z siecią";
             this.DisconnectButton.UseVisualStyleBackColor = true;
             this.DisconnectButton.Click += new System.EventHandler(this.DisconnectButton_Click);
             // 
@@ -337,20 +266,146 @@
             this.SaveConfigButton.UseVisualStyleBackColor = true;
             this.SaveConfigButton.Click += new System.EventHandler(this.SaveConfigButton_Click);
             // 
+            // ClientHostNumberField
+            // 
+            this.ClientHostNumberField.Location = new System.Drawing.Point(666, 199);
+            this.ClientHostNumberField.Name = "ClientHostNumberField";
+            this.ClientHostNumberField.Size = new System.Drawing.Size(34, 20);
+            this.ClientHostNumberField.TabIndex = 46;
+            // 
+            // ClientSubnetworkNumberField
+            // 
+            this.ClientSubnetworkNumberField.Location = new System.Drawing.Point(624, 199);
+            this.ClientSubnetworkNumberField.Name = "ClientSubnetworkNumberField";
+            this.ClientSubnetworkNumberField.Size = new System.Drawing.Size(36, 20);
+            this.ClientSubnetworkNumberField.TabIndex = 45;
+            // 
+            // setClientNumber
+            // 
+            this.setClientNumber.Location = new System.Drawing.Point(584, 233);
+            this.setClientNumber.Name = "setClientNumber";
+            this.setClientNumber.Size = new System.Drawing.Size(115, 44);
+            this.setClientNumber.TabIndex = 44;
+            this.setClientNumber.Text = "Ustal numer klienta";
+            this.setClientNumber.UseVisualStyleBackColor = true;
+            this.setClientNumber.Click += new System.EventHandler(this.setClientNumber_Click);
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(583, 183);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(69, 13);
+            this.label8.TabIndex = 43;
+            this.label8.Text = "Adres Klienta";
+            // 
+            // ClientNetworkNumberField
+            // 
+            this.ClientNetworkNumberField.Location = new System.Drawing.Point(582, 199);
+            this.ClientNetworkNumberField.Name = "ClientNetworkNumberField";
+            this.ClientNetworkNumberField.Size = new System.Drawing.Size(36, 20);
+            this.ClientNetworkNumberField.TabIndex = 42;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(474, 141);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(73, 13);
+            this.label6.TabIndex = 29;
+            this.label6.Text = "Klienty w sieci";
+            // 
+            // selectedClientBox
+            // 
+            this.selectedClientBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.selectedClientBox.FormattingEnabled = true;
+            this.selectedClientBox.Location = new System.Drawing.Point(477, 155);
+            this.selectedClientBox.Name = "selectedClientBox";
+            this.selectedClientBox.Size = new System.Drawing.Size(100, 21);
+            this.selectedClientBox.TabIndex = 30;
+            this.selectedClientBox.SelectedIndexChanged += new System.EventHandler(this.selectedClientBoxs_SelectedIndexChanged);
+            // 
+            // controlCloudPortTextBox
+            // 
+            this.controlCloudPortTextBox.Location = new System.Drawing.Point(582, 66);
+            this.controlCloudPortTextBox.Name = "controlCloudPortTextBox";
+            this.controlCloudPortTextBox.Size = new System.Drawing.Size(118, 20);
+            this.controlCloudPortTextBox.TabIndex = 51;
+            this.controlCloudPortTextBox.Text = "14000";
+            // 
+            // portLabel
+            // 
+            this.portLabel.AutoSize = true;
+            this.portLabel.Location = new System.Drawing.Point(582, 50);
+            this.portLabel.Name = "portLabel";
+            this.portLabel.Size = new System.Drawing.Size(117, 13);
+            this.portLabel.TabIndex = 50;
+            this.portLabel.Text = "Port chmury sterowania";
+            // 
+            // conLabel
+            // 
+            this.conLabel.AutoSize = true;
+            this.conLabel.Location = new System.Drawing.Point(581, 11);
+            this.conLabel.Name = "conLabel";
+            this.conLabel.Size = new System.Drawing.Size(108, 13);
+            this.conLabel.TabIndex = 49;
+            this.conLabel.Text = "IP chmury sterowania";
+            // 
+            // controlCloudIPTextBox
+            // 
+            this.controlCloudIPTextBox.Location = new System.Drawing.Point(582, 27);
+            this.controlCloudIPTextBox.Name = "controlCloudIPTextBox";
+            this.controlCloudIPTextBox.Size = new System.Drawing.Size(118, 20);
+            this.controlCloudIPTextBox.TabIndex = 48;
+            this.controlCloudIPTextBox.Text = "127.0.0.1";
+            // 
+            // conToCloudButton
+            // 
+            this.conToCloudButton.Location = new System.Drawing.Point(582, 92);
+            this.conToCloudButton.Name = "conToCloudButton";
+            this.conToCloudButton.Size = new System.Drawing.Size(118, 43);
+            this.conToCloudButton.TabIndex = 47;
+            this.conToCloudButton.Text = "Połącz z chmurą sterowania";
+            this.conToCloudButton.UseVisualStyleBackColor = true;
+            this.conToCloudButton.Click += new System.EventHandler(this.conToCloudButton_Click);
+            // 
+            // clientSpeedBox
+            // 
+            this.clientSpeedBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.clientSpeedBox.FormattingEnabled = true;
+            this.clientSpeedBox.Location = new System.Drawing.Point(585, 157);
+            this.clientSpeedBox.Name = "clientSpeedBox";
+            this.clientSpeedBox.Size = new System.Drawing.Size(115, 21);
+            this.clientSpeedBox.TabIndex = 52;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(582, 141);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(96, 13);
+            this.label9.TabIndex = 53;
+            this.label9.Text = "Prędkość w Mbit/s";
+            // 
             // Clientix
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(585, 285);
+            this.ClientSize = new System.Drawing.Size(710, 285);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.clientSpeedBox);
+            this.Controls.Add(this.controlCloudPortTextBox);
+            this.Controls.Add(this.portLabel);
+            this.Controls.Add(this.conLabel);
+            this.Controls.Add(this.controlCloudIPTextBox);
+            this.Controls.Add(this.conToCloudButton);
+            this.Controls.Add(this.ClientHostNumberField);
+            this.Controls.Add(this.ClientSubnetworkNumberField);
+            this.Controls.Add(this.setClientNumber);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.ClientNetworkNumberField);
             this.Controls.Add(this.SaveConfigButton);
             this.Controls.Add(this.DisconnectButton);
-            this.Controls.Add(this.forceSend);
-            this.Controls.Add(this.outVCITextBox);
-            this.Controls.Add(this.outVPITextBox);
-            this.Controls.Add(this.outPortTextBox);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.label9);
-            this.Controls.Add(this.label10);
             this.Controls.Add(this.disconnectWithClient);
             this.Controls.Add(this.connectWithClientButton);
             this.Controls.Add(this.selectedClientBox);
@@ -373,12 +428,13 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.enteredTextField);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(601, 323);
             this.MinimizeBox = false;
             this.MinimumSize = new System.Drawing.Size(601, 323);
             this.Name = "Clientix";
             this.Text = "Clientix";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Clientix_FormClosed);
             this.MouseEnter += new System.EventHandler(this.selectedClientBox_MouseEnter);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -405,19 +461,24 @@
         private System.Windows.Forms.TextBox usernameField;
         private System.Windows.Forms.Button setUsernameButton;
         private System.Windows.Forms.Button getOtherClients;
-        private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Button connectWithClientButton;
         private System.Windows.Forms.Button disconnectWithClient;
-        private System.Windows.Forms.ComboBox selectedClientBox;
-        private System.Windows.Forms.TextBox outVCITextBox;
-        private System.Windows.Forms.TextBox outVPITextBox;
-        private System.Windows.Forms.TextBox outPortTextBox;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Button forceSend;
         private System.Windows.Forms.Button DisconnectButton;
         private System.Windows.Forms.Button SaveConfigButton;
+        private System.Windows.Forms.TextBox ClientHostNumberField;
+        private System.Windows.Forms.TextBox ClientSubnetworkNumberField;
+        private System.Windows.Forms.Button setClientNumber;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox ClientNetworkNumberField;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.ComboBox selectedClientBox;
+        private System.Windows.Forms.TextBox controlCloudPortTextBox;
+        private System.Windows.Forms.Label portLabel;
+        private System.Windows.Forms.Label conLabel;
+        private System.Windows.Forms.TextBox controlCloudIPTextBox;
+        private System.Windows.Forms.Button conToCloudButton;
+        private System.Windows.Forms.ComboBox clientSpeedBox;
+        private System.Windows.Forms.Label label9;
     }
 }
 
