@@ -174,33 +174,35 @@ namespace Clientix {
 
         private void connectToCloud(object sender, EventArgs e) {
             if (isClientNumberSet) {
-                if (!isConnectedToCloud) {
-                    if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
-                        log.AppendText("IP ustawiono jako " + cloudAddress.ToString() + " \n");
-                    } else {
-                        log.AppendText("Błąd podczas ustawiania IP chmury (zły format?)" + " \n");
-                    }
-                    if (Int32.TryParse(cloudPortField.Text, out cloudPort)) {
-                        log.AppendText("Port chmury ustawiony jako " + cloudPort.ToString() + " \n");
-                    } else {
-                        log.AppendText("Błąd podczas ustawiania portu chmury (zły format?)" + " \n");
-                    }
+                if (isClientNameSet) {
+                    if (!isConnectedToCloud) {
+                        if (IPAddress.TryParse(cloudIPField.Text, out cloudAddress)) {
+                            log.AppendText("IP ustawiono jako " + cloudAddress.ToString() + " \n");
+                        } else {
+                            log.AppendText("Błąd podczas ustawiania IP chmury (zły format?)" + " \n");
+                        }
+                        if (Int32.TryParse(cloudPortField.Text, out cloudPort)) {
+                            log.AppendText("Port chmury ustawiony jako " + cloudPort.ToString() + " \n");
+                        } else {
+                            log.AppendText("Błąd podczas ustawiania portu chmury (zły format?)" + " \n");
+                        }
 
-                    cloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        cloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                    cloudEndPoint = new IPEndPoint(cloudAddress, cloudPort);
-                    try {
-                        cloudSocket.Connect(cloudEndPoint);
-                        isConnectedToCloud = true;
-                        receiveThread = new Thread(this.receiver);
-                        receiveThread.IsBackground = true;
-                        receiveThread.Start();
-                    } catch (SocketException) {
-                        isConnectedToCloud = false;
-                        log.AppendText("Błąd podczas łączenia się z chmurą\n");
-                        log.AppendText("Złe IP lub port? Chmura nie działa?\n");
-                    }
-                } else SetText("Klient jest już połączony z chmurą\n");
+                        cloudEndPoint = new IPEndPoint(cloudAddress, cloudPort);
+                        try {
+                            cloudSocket.Connect(cloudEndPoint);
+                            isConnectedToCloud = true;
+                            receiveThread = new Thread(this.receiver);
+                            receiveThread.IsBackground = true;
+                            receiveThread.Start();
+                        } catch (SocketException) {
+                            isConnectedToCloud = false;
+                            log.AppendText("Błąd podczas łączenia się z chmurą\n");
+                            log.AppendText("Złe IP lub port? Chmura nie działa?\n");
+                        }
+                    } else SetText("Klient jest już połączony z chmurą\n");
+                } else SetText("Musisz najpierw ustalić nazwę klienta!\n");
             } else SetText("Ustaw adres klienta!\n");
         }
 
@@ -245,7 +247,7 @@ namespace Clientix {
                 if (networkStream == null) {
                     networkStream = new NetworkStream(cloudSocket);
                     //tworzy string 'client ' i tu jego nazwę
-                    String welcomeString = "Client " + myAddress.ToString();
+                    String welcomeString = "Client " + username + " " + myAddress.ToString();
                     //tworzy tablicę bajtów z tego stringa
                     byte[] welcomeStringBytes = AAL.GetBytesFromString(welcomeString);
                     //wysyła tą tablicę bajtów streamem
