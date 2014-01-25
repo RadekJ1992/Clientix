@@ -51,6 +51,8 @@ namespace Clientix {
         private IPAddress cloudAddress;        //Adres na którym chmura nasłuchuje
         private Int32 cloudPort;           //port chmury
 
+
+        private Dictionary<string, Address> userDict;
         //dane zarządcy
         private IPAddress managerAddress;        //Adres na którym chmura nasłuchuje
         private Int32 managerPort;           //port chmury
@@ -86,6 +88,9 @@ namespace Clientix {
 
         private string userToBeCalled;
 
+
+
+        public PortVPIVCI lastAddedPortVPIVCI
         // do odbierania
         private NetworkStream networkStream;
         //do wysyłania
@@ -138,6 +143,7 @@ namespace Clientix {
             speedList.Add(2);
             speedList.Add(6);
             speedList.Add(10);
+            userDict = new Dictionary<string, Address>();
             BindingSource bs = new BindingSource();
             bs.DataSource = speedList;
             clientSpeedBox.DataSource = bs;
@@ -408,6 +414,7 @@ namespace Clientix {
             if (isConnectedToControlCloud) {
                 if ((String)selectedClientBox.SelectedItem != null) {
                     String clientName = (String)selectedClientBox.SelectedItem;
+                    userDict.Add(clientName, new Address(0, 0, 0));
                     userToBeCalled = clientName;
                     List<String> _msgList = new List<String>();
                     _msgList.Add("REQ_CONN");
@@ -441,9 +448,8 @@ namespace Clientix {
                                 VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
 
                             } else {
-                                try {
+                                
                                     VCArray.Remove(clientName);
-                                } catch { }
                                 VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
 
                             }
@@ -686,12 +692,44 @@ namespace Clientix {
                         setOtherClients(_temp);
                     } else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "0.0.1") {
                         Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
+                        string usrToEdit = String.Empty;
+                        foreach (string usr in userDict.Keys) {
+                            Address _adr;
+                            userDict.TryGetValue(usr, out _adr);
+                            if (_adr.network == 0 && _adr.subnet == 0 && _adr.host == 0) usrToEdit = usr;
+                        }
+                        userDict.Remove(usrToEdit);
+                        userDict.Add(usrToEdit, calledAddress);
                         string temp = "REQ_CALL " + calledAddress.ToString();
                         SPacket pck = new SPacket(myAddress.ToString(), "0.0.2", temp);
                         whatToSendQueue.Enqueue(pck);
                     } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "0.0.1") {
+                        string usrToEdit = String.Empty;
+                        foreach (string usr in userDict.Keys) {
+                            Address _adr;
+                            userDict.TryGetValue(usr, out _adr);
+                            if (_adr.network == 0 && _adr.subnet == 0 && _adr.host == 0) usrToEdit = usr;
+                        }
+                        userDict.Remove(usrToEdit);
                         SetText("Nie masz uprawnień do wykonania takiego połączenia!\n");
                         userToBeCalled = null;
+                    } else if (receivedPacket.getParames()[0] == "CONN_EST") {
+                        Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
+                        string conUsr = String.Empty;
+                        foreach (string usr in userDict.Keys) {
+                            Address _adr;
+                            userDict.TryGetValue(usr, out _adr);
+                            if (_adr.network == calledAddress.network && _adr.subnet == calledAddress.subnet && _adr.host == calledAddress.host)
+                                conUsr = usr;
+                        }
+                        //connectionEstablished(conUsr);
+                        /*
+                         * 
+                         * 
+                         *  TUTAJ MUSZE ROZKMINIC JAK TO DODAC
+                         * 
+                         * 
+                         */
                     } else {
                         /*
                          * 
