@@ -45,7 +45,7 @@ namespace Clientix {
         private Queue<Packet.ATMPacket> packetsFromString;
 
         //kolejka pakietów odebranych z chmury
-        private Queue<Packet.ATMPacket> queuedReceivedPackets = new Queue<Packet.ATMPacket>();
+        public Queue<Packet.ATMPacket> queuedReceivedPackets = new Queue<Packet.ATMPacket>();
 
         //dane chmury
         private IPAddress cloudAddress;        //Adres na którym chmura nasłuchuje
@@ -84,7 +84,7 @@ namespace Clientix {
         private Thread controlSendThread;        // analogicznie - do wysyłania
 
         private Queue _whatToSendQueue;
-        private Queue whatToSendQueue;
+        public Queue whatToSendQueue;
 
         private string userToBeCalled;
 
