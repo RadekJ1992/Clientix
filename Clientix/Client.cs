@@ -114,6 +114,8 @@ namespace Clientix {
         //słownik klientów, z którymi mamy połączenie i odpowiadających im komvinacji port,vpi,vci
         public Dictionary<String, PortVPIVCI> VCArray { get; set; }
 
+        public Dictionary<PortVPIVCI, Address> AddrPortVPIVCIArray { get; set; }
+
         private Agentix agent; //agent zarządzania
 
         public Clientix() {
@@ -148,6 +150,7 @@ namespace Clientix {
             bs.DataSource = speedList;
             clientSpeedBox.DataSource = bs;
             selectedClientBox.DataSource = otherClients;
+            AddrPortVPIVCIArray = new Dictionary<PortVPIVCI, Address>(new PortVPIVCIComparer());
         }
 
         private void sendMessage(object sender, EventArgs e) {
@@ -716,28 +719,29 @@ namespace Clientix {
                     } else if (receivedPacket.getParames()[0] == "CONN_EST") {
                         Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
                         string conUsr = String.Empty;
+                        PortVPIVCI conPortVPIVCI = new PortVPIVCI();
                         foreach (string usr in userDict.Keys) {
                             Address _adr;
                             userDict.TryGetValue(usr, out _adr);
-                            if (_adr.network == calledAddress.network && _adr.subnet == calledAddress.subnet && _adr.host == calledAddress.host)
+                            if (_adr.network == calledAddress.network && _adr.subnet == calledAddress.subnet && _adr.host == calledAddress.host) {
                                 conUsr = usr;
+                                foreach (PortVPIVCI pvv in AddrPortVPIVCIArray.Keys) {
+                                    Address _addr;
+                                    AddrPortVPIVCIArray.TryGetValue(pvv, out _addr);
+                                    if (_addr.network == calledAddress.network && _addr.subnet == calledAddress.subnet && _addr.host == calledAddress.host) {
+                                        conPortVPIVCI = pvv;
+                                    }
+                                }
+                            }
                         }
-                        //connectionEstablished(conUsr);
-                        /*
-                         * 
-                         * 
-                         *  TUTAJ MUSZE ROZKMINIC JAK TO DODAC
-                         * 
-                         * 
-                         */
+                        connectionEstablished(conUsr, conPortVPIVCI.port, conPortVPIVCI.VPI, conPortVPIVCI.VCI);
+                        
                     } else {
                         /*
                          * 
                          * 
                          * 
-                         * 
-                         *  tutaj przekazać pakiet do LRMA
-                         * 
+                         * GUWNO
                          * 
                          * 
                          * 
@@ -747,6 +751,14 @@ namespace Clientix {
                     SetText("WUT");
                 }
             }
+        }
+
+        public void AddSingleEntry(Address address, int port, int vpi, int vci, int callID) {
+            AddrPortVPIVCIArray.Add(new PortVPIVCI(port, vpi, vci), address);
+        }
+
+        public void RemoveSingleEntry(Address address, int port, int vpi, int vci, int callID) {
+            AddrPortVPIVCIArray.Remove(new PortVPIVCI(port, vpi, vci));
         }
         /// <summary>
         /// wątek wysyłający wiadomości do chmury
