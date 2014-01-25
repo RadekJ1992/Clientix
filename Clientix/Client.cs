@@ -118,6 +118,8 @@ namespace Clientix {
 
         private Agentix agent; //agent zarządzania
 
+        private eLReMix LRM;
+
         public Clientix() {
             isDisconnect = false;
             tempMid = 0;
@@ -277,59 +279,59 @@ namespace Clientix {
                         isNameFound = true;
                     }
                 }
-                /*
-                if (isNameFound) {
-                    SetText(tempName+ " :  ");
-                } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
-                */
-                // gdy wiadomość zawarta jest w jednym pakiecie
-                if (receivedPacket.PacketType == Packet.ATMPacket.AALType.SSM) {
-                    if (isNameFound) {
-                        SetText(tempName + " :  ");
-                    } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
-                    SetText(Packet.AAL.getStringFromPacket(receivedPacket) + "\n");
-                    tempMid = 0;
-                }
-                else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.BOM) {
-                    if (isNameFound) {
-                        SetText(tempName + " :  ");
-                    } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
-                    tempSeq = 0;
-                    tempMid = receivedPacket.AALMid;
-                    SetText(Packet.AAL.getStringFromPacket(receivedPacket));
-                    /*
-                    queuedReceivedPackets.Clear();
-                    queuedReceivedPackets.Enqueue(receivedPacket);
-                    */
-                }
-                else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.COM) {
-                    if (receivedPacket.AALMid == tempMid) {
-                        //sprawdza kolejnosc AALSeq
 
-                        //usun tempmid
-                        if (receivedPacket.AALSeq == ++tempSeq) {
-                            SetText(Packet.AAL.getStringFromPacket(receivedPacket));
-                            //queuedReceivedPackets.Enqueue(receivedPacket);
-                        }
-                        else {
-                            //SetText("\nPakiet ma inny AALSeq niż powinien mieć, pakiety przyszły w innej kolejności!\n");
-                            SetText(Packet.AAL.getStringFromPacket(receivedPacket));
-                        }
-                    }
-                    else {
-                        //SetText("\nPakiet z innej wiadomości! Inne AALMid!\n");
-                        SetText("\n" + tempName + " : " + Packet.AAL.getStringFromPacket(receivedPacket));
-                    }
-                }
-                else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.EOM) {
+                if (receivedPacket.VCI == -1 && receivedPacket.VPI == -1) {
+                    LRM.OdczytajATM(receivedPacket);
+                } else {
                     /*
-                    queuedReceivedPackets.Enqueue(receivedPacket);
-                    SetText(Packet.AAL.getStringFromPackets(queuedReceivedPackets));
-                    queuedReceivedPackets.Clear();
-                     */
-                    SetText(Packet.AAL.getStringFromPacket(receivedPacket) + "\n");
-                    tempSeq = 0;
-                    tempMid = 0;
+                    if (isNameFound) {
+                        SetText(tempName+ " :  ");
+                    } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
+                    */
+                    // gdy wiadomość zawarta jest w jednym pakiecie
+                    if (receivedPacket.PacketType == Packet.ATMPacket.AALType.SSM) {
+                        if (isNameFound) {
+                            SetText(tempName + " :  ");
+                        } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
+                        SetText(Packet.AAL.getStringFromPacket(receivedPacket) + "\n");
+                        tempMid = 0;
+                    } else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.BOM) {
+                        if (isNameFound) {
+                            SetText(tempName + " :  ");
+                        } else SetText("[" + receivedPacket.port + ";" + receivedPacket.VPI + ";" + receivedPacket.VCI + "] : ");
+                        tempSeq = 0;
+                        tempMid = receivedPacket.AALMid;
+                        SetText(Packet.AAL.getStringFromPacket(receivedPacket));
+                        /*
+                        queuedReceivedPackets.Clear();
+                        queuedReceivedPackets.Enqueue(receivedPacket);
+                        */
+                    } else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.COM) {
+                        if (receivedPacket.AALMid == tempMid) {
+                            //sprawdza kolejnosc AALSeq
+
+                            //usun tempmid
+                            if (receivedPacket.AALSeq == ++tempSeq) {
+                                SetText(Packet.AAL.getStringFromPacket(receivedPacket));
+                                //queuedReceivedPackets.Enqueue(receivedPacket);
+                            } else {
+                                //SetText("\nPakiet ma inny AALSeq niż powinien mieć, pakiety przyszły w innej kolejności!\n");
+                                SetText(Packet.AAL.getStringFromPacket(receivedPacket));
+                            }
+                        } else {
+                            //SetText("\nPakiet z innej wiadomości! Inne AALMid!\n");
+                            SetText("\n" + tempName + " : " + Packet.AAL.getStringFromPacket(receivedPacket));
+                        }
+                    } else if (receivedPacket.PacketType == Packet.ATMPacket.AALType.EOM) {
+                        /*
+                        queuedReceivedPackets.Enqueue(receivedPacket);
+                        SetText(Packet.AAL.getStringFromPackets(queuedReceivedPackets));
+                        queuedReceivedPackets.Clear();
+                         */
+                        SetText(Packet.AAL.getStringFromPacket(receivedPacket) + "\n");
+                        tempSeq = 0;
+                        tempMid = 0;
+                    }
                 }
                 //networkStream.Close();
                 receiver();
@@ -647,7 +649,7 @@ namespace Clientix {
                     }
 
                     controlCloudSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                    controlCloudEndPoint = new IPEndPoint(cloudAddress, cloudPort);
+                    controlCloudEndPoint = new IPEndPoint(controlCloudAddress, controlCloudPort);
                     try {
                         controlCloudSocket.Connect(controlCloudEndPoint);
                         isConnectedToControlCloud = true;
@@ -664,6 +666,7 @@ namespace Clientix {
                         controlSendThread.IsBackground = true;
                         controlSendThread.Start();
                         conToCloudButton.Text = "Rozłącz";
+                        LRM = new eLReMix(this);
                         SetText("Połączono!\n");
                     } catch (SocketException) {
                         isConnectedToControlCloud = false;
@@ -744,15 +747,7 @@ namespace Clientix {
                         connectionEstablished(conUsr, conPortVPIVCI.port, conPortVPIVCI.VPI, conPortVPIVCI.VCI);
                         
                     } else {
-                        /*
-                         * 
-                         * 
-                         * 
-                         * GUNWO
-                         * 
-                         * 
-                         * 
-                         */
+                        LRM.OdczytajS(receivedPacket);
                     }
                 } catch {
                     SetText("WUT");
