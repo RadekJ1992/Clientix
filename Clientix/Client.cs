@@ -741,7 +741,7 @@ namespace Clientix {
                          * 
                          * 
                          * 
-                         * GUWNO
+                         * GUNWO
                          * 
                          * 
                          * 
