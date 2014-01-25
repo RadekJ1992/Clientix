@@ -518,10 +518,15 @@ namespace Clientix {
         }
         public void readConfig(String clientName) {
             try {
-                username = clientName;
-                usernameField.Text = clientName;
-                isClientNameSet = true;
-                SetText("Ustalam nazwę klienta jako " + username + "\n");
+                string[] loadArr = clientName.Split('.');
+                myAddress = new Address(int.Parse(loadArr[0]), int.Parse(loadArr[1]), int.Parse(loadArr[2]));
+                //username = clientName;
+                //usernameField.Text = clientName;
+                ClientHostNumberField.Text = loadArr[2];
+                ClientNetworkNumberField.Text = loadArr[0];
+                ClientSubnetworkNumberField.Text = loadArr[1];
+                isClientNumberSet = true;
+                SetText("Ustalam adres klienta jako " + clientName + "\n");
                 String path = "config" + username + ".txt";
                 otherClients = new List<String>();
                 using (StreamReader sr = new StreamReader(path)) {
@@ -566,6 +571,8 @@ namespace Clientix {
                 SetText(exc.Message + "\n");
             }
         }
+
+
 
         private void selectedClientBox_MouseEnter(object sender, EventArgs e) {
             if (isFirstMouseEnter) {
