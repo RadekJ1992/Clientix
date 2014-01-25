@@ -90,7 +90,7 @@ namespace Clientix {
 
 
 
-        public PortVPIVCI lastAddedPortVPIVCI
+        public PortVPIVCI lastAddedPortVPIVCI;
         // do odbierania
         private NetworkStream networkStream;
         //do wysyłania
