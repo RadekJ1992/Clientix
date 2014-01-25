@@ -521,7 +521,6 @@ namespace Clientix {
         public void readConfig(String nAddr) {
             try {
                 myAddress = Address.Parse(nAddr);
-                Clientix.ActiveForm.Text += " " + nAddr;
                 isClientNumberSet = true;
                 ClientNetworkNumberField.Text = String.Empty + myAddress.network;
                 ClientSubnetworkNumberField.Text = String.Empty + myAddress.subnet;
