@@ -372,7 +372,7 @@ namespace Clientix {
                         _msgList.Add("LOGIN");
                         _msgList.Add(username);
                         _msgList.Add(myAddress.ToString());
-                        SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 0).ToString(), _msgList);
+                        SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 1).ToString(), _msgList);
                         whatToSendQueue.Enqueue(welcomePacket);
                         SetText("Nazwa klienta ustawiona jako " + username + "\n");
                     } else SetText("Połącz z chmurą zarządania!\n");
