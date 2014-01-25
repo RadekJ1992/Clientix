@@ -386,7 +386,11 @@ namespace Clientix {
         private void getOtherClients_Click(object sender, EventArgs e) {
             if (agent != null) agent.sendGetClients = true;
             if (isConnectedToControlCloud) {
-
+                List<String> _msgList = new List<String>();
+                _msgList.Add("REQ_CLIENTS");
+                SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 1).ToString(), _msgList);
+                whatToSendQueue.Enqueue(welcomePacket);
+                SetText("Wysłano żądanie pobrania nazwy klientów\n");
             }
         }
 
@@ -422,9 +426,9 @@ namespace Clientix {
                     userDict.Add(clientName, new Address(0, 0, 0));
                     userToBeCalled = clientName;
                     List<String> _msgList = new List<String>();
-                    _msgList.Add("REQ_CONN");
+                    _msgList.Add("REQ_CALL");
                     _msgList.Add(userToBeCalled);
-                    _msgList.Add((string)clientSpeedBox.SelectedItem);
+                    _msgList.Add((string)clientSpeedBox.SelectedItem.ToString());
                     SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 1).ToString(), _msgList);
                     whatToSendQueue.Enqueue(welcomePacket);
                 } else {
