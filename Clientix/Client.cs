@@ -528,7 +528,7 @@ namespace Clientix {
                 SetText("Ustalam adres klienta jako " + myAddress.ToString() + "\n");
                 String path = "config" + nAddr + ".txt";
                 //username = clientName;
-                //usernameField.Text = clientName;
+                //usernameField. Text = clientName;
                 //isClientNameSet = true;
                 //SetText("Ustalam nazwę klienta jako " + username + "\n");
                 //String path = "config" + clientName + ".txt";
