@@ -131,9 +131,9 @@ namespace Clientix
                             connID = int.Parse(p.ElementAt(4));
                             
                             int p1 = AddressToPort(a1);
-                            
-                            //parent.addSingleEntry(p1, vp1, vc1, p2, vp2, vc2);
-                            //ZajmijZasob(a1, a2);
+
+                            parent.AddSingleEntry(a1, p1, vp1, vc1, connID);
+                            ZajmijZasob(a1);
                             nowakomenda = "MSG zadanie ADD wykonane";
                         }
                         else
@@ -156,8 +156,8 @@ namespace Clientix
                             connID = int.Parse(p.ElementAt(4));
 
                             int p1 = AddressToPort(a1);
-                            //parent.removeSingleEntry(p1, vp1, vc1);
-                            //ZwolnijZasob(a1, a2);
+                            parent.RemoveSingleEntry(a1, p1, vp1, vc1, connID);
+                            ZwolnijZasob(a1);
                             nowakomenda = "MSG zadanie DELETE wykonane";
                         }
                         else
@@ -296,29 +296,30 @@ namespace Clientix
         }
         #endregion
         #region zasoby
-        public bool ZwolnijZasob(Address a1, Address a2)
+        public bool ZwolnijZasob(Address a1)
         {
             int result = 0;
             for (int i = 0; i < parent.routeList.Count; i++)
             {
-                if (parent.routeList.ElementAt(i).Equals(a1) || parent.routeList.ElementAt(i).Equals(a2))//przeszukuje całą listę w poszukiwaniu zadanych adresów
+                if (parent.routeList.ElementAt(i).Equals(a1))//przeszukuje całą listę w poszukiwaniu zadanych adresów
                 {
                     parent.routeList.ElementAt(i).bandwidth += 2;//zwalnianie zasobów
                     result++;
+                    break;
                 }
 
             }
-            if (result == 2)//gdy oba uda się zwolnić to sukces
+            if (result == 1)//gdy oba uda się zwolnić to sukces
                 return true;
             else
                 return false;
         }
-        public bool ZajmijZasob(Address a1, Address a2)
+        public bool ZajmijZasob(Address a1)
         {
             int result = 0;
             for (int i = 0; i < parent.routeList.Count; i++)
             {
-                if (parent.routeList.ElementAt(i).Equals(a1) || parent.routeList.ElementAt(i).Equals(a2))//przeszukuję całą listę
+                if (parent.routeList.ElementAt(i).Equals(a1))//przeszukuję całą listę
                 {
                     if (parent.routeList.ElementAt(i).bandwidth < 2)
                     {
@@ -326,10 +327,11 @@ namespace Clientix
                     }
                     parent.routeList.ElementAt(i).bandwidth -= 2;//zajmuje zasób
                     result++;
+                    break;
                 }
 
             }
-            if (result == 2)//gdy oba uda się zająć to sukces
+            if (result == 1)//gdy oba uda się zająć to sukces
                 return true;
             else
                 return false;
