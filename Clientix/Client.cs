@@ -413,7 +413,7 @@ namespace Clientix {
                     _msgList.Add("REQ_CONN");
                     _msgList.Add(userToBeCalled);
                     _msgList.Add((string)clientSpeedBox.SelectedItem);
-                    SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 0).ToString(), _msgList);
+                    SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 1).ToString(), _msgList);
                     whatToSendQueue.Enqueue(welcomePacket);
                 } else {
                     SetText("Nie wybrano klienta\n");
@@ -675,21 +675,21 @@ namespace Clientix {
                     //_msg = reader.ReadLine();
                     SetText("Odczytano:\n" + receivedPacket.ToString() + "\n");
 
-                    if (receivedPacket.getParames()[0] == "OK" && receivedPacket.getSrc() == "0.0.0") {
+                    if (receivedPacket.getParames()[0] == "OK" && receivedPacket.getSrc() == "0.0.1") {
                         isClientNameSet = true;
-                    } else if (receivedPacket.getParames()[0] == "NAME_TAKEN" && receivedPacket.getSrc() == "0.0.0") {
+                    } else if (receivedPacket.getParames()[0] == "NAME_TAKEN" && receivedPacket.getSrc() == "0.0.1") {
                         SetText("Nazwa użytkownika zajęta, wybierz inną!;");
                         username = null;
-                    } else if (receivedPacket.getParames()[0] == "CLIENTS" && receivedPacket.getSrc() == "0.0.0") {
+                    } else if (receivedPacket.getParames()[0] == "CLIENTS" && receivedPacket.getSrc() == "0.0.1") {
                         List<string> _temp = receivedPacket.getParames();
                         _temp.Remove("CLIENTS");
                         setOtherClients(_temp);
-                    } else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "0.0.0") {
+                    } else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "0.0.1") {
                         Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
                         string temp = "REQ_CALL " + calledAddress.ToString();
-                        SPacket pck = new SPacket(myAddress.ToString(), "0.0.1", temp);
+                        SPacket pck = new SPacket(myAddress.ToString(), "0.0.2", temp);
                         whatToSendQueue.Enqueue(pck);
-                    } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "0.0.0") {
+                    } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "0.0.1") {
                         SetText("Nie masz uprawnień do wykonania takiego połączenia!\n");
                         userToBeCalled = null;
                     } else {
