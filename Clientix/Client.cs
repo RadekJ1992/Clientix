@@ -552,60 +552,11 @@ namespace Clientix {
                         }
                     }
                 }
-                //setOtherClients(tempOtherClients); 
-                /*
-                String tempSelCl = (String)selectedClientBox.SelectedItem;
-                if (VCArray.ContainsKey(tempSelCl)) {
-                    disconnectWithClient.Enabled = true;
-                    sendText.Enabled = true;
-                } else {
-                    disconnectWithClient.Enabled = false;
-                    sendText.Enabled = false;
-                }*/
             } catch (Exception exc) {
                 SetText("Błąd podczas konfigurowania pliku konfiguracyjnego\n");
                 SetText(exc.Message + "\n");
             }
         }
-    /*
-        private void forceSend_Click(object sender, EventArgs e) {
-            packetsFromString = Packet.AAL.getATMPackets(enteredTextField.Text);
-            if (!isConnectedToCloud) log.AppendText("Nie jestem połączony z chmurą!!");
-            else {
-                foreach (Packet.ATMPacket packet in packetsFromString) {
-                    Boolean isPortVPIVCISet = false;
-                    try {
-                        packet.port = int.Parse(outPortTextBox.Text);
-                        packet.VPI = int.Parse(outVPITextBox.Text);
-                        packet.VCI = int.Parse(outVCITextBox.Text);
-                        isPortVPIVCISet = true;
-                    } catch {
-                        isPortVPIVCISet = false;
-                    }
-                    netStream = new NetworkStream(cloudSocket);
-                    PortVPIVCI temp;
-                    if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
-                        if (isPortVPIVCISet) {
-                            SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + int.Parse(outPortTextBox.Text) + ";" +
-                                            int.Parse(outVPITextBox.Text) + ";" + int.Parse(outVCITextBox.Text) + "]\n");
-                        } else {
-                            packet.port = temp.port;
-                            packet.VPI = temp.VPI;
-                            packet.VCI = temp.VCI;
-                            SetText("Wysyłam pakiet do z ustawieniem [" + packet.port + ";" +
-                                           packet.VPI + ";" + packet.VCI + "]\n");
-                        }
-                        BinaryFormatter bformatter = new BinaryFormatter();
-                        bformatter.Serialize(netStream, packet);
-                        netStream.Close();
-                    }
-                }
-            }
-            enteredTextField.Clear();
-            outPortTextBox.Clear();
-            outVCITextBox.Clear();
-            outVPITextBox.Clear();
-        }*/
 
         private void selectedClientBox_MouseEnter(object sender, EventArgs e) {
             if (isFirstMouseEnter) {
@@ -733,15 +684,9 @@ namespace Clientix {
                         setOtherClients(_temp);
                     } else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "0.0.0") {
                         Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
-                        /*
-                         * 
-                         * 
-                         * 
-                         * zadzwoń do NCC z tym adresem!
-                         * losuj liczbę identyfikującą połączenie
-                         * 
-                         * 
-                         */
+                        string temp = "REQ_CALL " + calledAddress.ToString();
+                        SPacket pck = new SPacket(myAddress.ToString(), "0.0.1", temp);
+                        whatToSendQueue.Enqueue(pck);
                     } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "0.0.0") {
                         SetText("Nie masz uprawnień do wykonania takiego połączenia!\n");
                         userToBeCalled = null;
