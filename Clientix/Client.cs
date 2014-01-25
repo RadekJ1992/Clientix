@@ -608,9 +608,11 @@ namespace Clientix {
                 isClientNumberSet = true;
                 myAddress = new Address(clientAddressNetwork, clientAddressSubnet, clientAddressHost);
                 SetText("Adres klienta ustawiony jako " + myAddress.ToString() + "\n");
+                Clientix.ActiveForm.Text = "Clientix " + myAddress.ToString();
             } catch {
                 isClientNumberSet = false;
                 SetText("Błędne dane wejściowe\n");
+                Clientix.ActiveForm.Text = "Clientix";
             }
         }
 
