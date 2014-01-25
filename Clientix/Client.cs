@@ -518,13 +518,20 @@ namespace Clientix {
                 sendText.Enabled = false;
             }
         }
-        public void readConfig(String clientName) {
+        public void readConfig(String nAddr) {
             try {
-                username = clientName;
-                usernameField.Text = clientName;
-                isClientNameSet = true;
-                SetText("Ustalam nazwę klienta jako " + username + "\n");
-                String path = "config" + username + ".txt";
+                myAddress = Address.Parse(nAddr);
+                isClientNumberSet = true;
+                ClientNetworkNumberField.Text = String.Empty + myAddress.network;
+                ClientSubnetworkNumberField.Text = String.Empty + myAddress.subnet;
+                ClientHostNumberField.Text = String.Empty + myAddress.host;
+                SetText("Ustalam adres klienta jako " + myAddress.ToString() + "\n");
+                String path = "config" + nAddr + ".txt";
+                //username = clientName;
+                //usernameField.Text = clientName;
+                //isClientNameSet = true;
+                //SetText("Ustalam nazwę klienta jako " + username + "\n");
+                //String path = "config" + clientName + ".txt";
                 otherClients = new List<String>();
                 using (StreamReader sr = new StreamReader(path)) {
                     string[] lines = System.IO.File.ReadAllLines(path);
