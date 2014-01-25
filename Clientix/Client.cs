@@ -62,7 +62,7 @@ namespace Clientix {
 
         private bool isClientNumberSet;
 
-        private Address myAddress;
+        public Address myAddress;
 
         private Socket cloudSocket;
         public Socket managerSocket { get; private set; }
