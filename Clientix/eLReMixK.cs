@@ -92,10 +92,11 @@ namespace Clientix
                     }
                     String komenda = pakiet.getParames().ElementAt(0);//zczytywanie komendy
                     String nowakomenda = "";
-                    if (komenda.Equals("IS_LINK_AVAILABLE"))//to jest do do wysyłania pakietu próbnego do sąsiada o zadanym adresie np. IS_ALIVE 1.2.3
+                    if (komenda.Equals("IS_LINK_AVAILABLE"))//to jest do do wysyłania pakietu próbnego do sąsiada o zadanym adresie np. IS_ALIVE 1.2.3 dawne IS_ALIVE
                     {
                         Address sprawdzany = Address.Parse(pakiet.getParames().ElementAt(1));
                         CzyZyjeRun(sprawdzany);//odpowiedzią zajmuje się metoda CzyZyje
+                        continue;
                     }
                     /*else if (komenda.Equals("IS_LINK_AVAILABLE"))
                     {
@@ -202,9 +203,9 @@ namespace Clientix
         #region sprawdzanie połączenia między Nodixami
         public void CzyZyjeRun(Address sprawdzany)//dla każdego zapytania o sprawność łącza od RC odpalany nowy wątek tą metodą
         {
-            new Thread(new ParameterizedThreadStart(_CzyZyje));
-            s.IsBackground = true;
-            s.Start(sprawdzany);
+            Thread ss = new Thread(new ParameterizedThreadStart(_CzyZyje));
+            ss.IsBackground = true;
+            ss.Start(sprawdzany);
         }
 
 
@@ -238,6 +239,7 @@ namespace Clientix
                     }
                 }
             }
+
             if (port == 0)
             {
                 //Wyslij z automatu no, bo nie ma takiego portu, żeby pakiet doszedł na ten adres
@@ -282,11 +284,11 @@ namespace Clientix
                 //obsługa rezultatu, jeśli znaleziono to wyślij YES <adres>, jak nie to NO <adres>
                 if (znaleziono && wolne)
                 {
-                    wyslijSPacket(new SPacket(adresLRM, adresRC, "YES_ALIVE " + sprawdzany.ToString()));
+                    wyslijSPacket(new SPacket(adresLRM, adresRC, ("YES " + sprawdzany.ToString())));
                 }
                 else
                 {
-                    wyslijSPacket(new SPacket(adresLRM, adresRC, "NO_ALIVE " + sprawdzany.ToString()));
+                    wyslijSPacket(new SPacket(adresLRM, adresRC, ("NO " + sprawdzany.ToString())));
                 }
 
             }
