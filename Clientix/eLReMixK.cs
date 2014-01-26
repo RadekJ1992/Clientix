@@ -92,12 +92,12 @@ namespace Clientix
                     }
                     String komenda = pakiet.getParames().ElementAt(0);//zczytywanie komendy
                     String nowakomenda = "";
-                    if (komenda.Equals("IS_ALIVE"))//to jest do do wysyłania pakietu próbnego do sąsiada o zadanym adresie np. IS_ALIVE 1.2.3
+                    if (komenda.Equals("IS_LINK_AVAILABLE"))//to jest do do wysyłania pakietu próbnego do sąsiada o zadanym adresie np. IS_ALIVE 1.2.3
                     {
                         Address sprawdzany = Address.Parse(pakiet.getParames().ElementAt(1));
                         CzyZyjeRun(sprawdzany);//odpowiedzią zajmuje się metoda CzyZyje
                     }
-                    else if (komenda.Equals("IS_LINK_AVAILABLE"))
+                    /*else if (komenda.Equals("IS_LINK_AVAILABLE"))
                     {
                         Address sprawdzany = Address.Parse(pakiet.getParames().ElementAt(1));
                         for (int i = 0; i < parent.routeList.Count; i++)
@@ -116,7 +116,7 @@ namespace Clientix
                                 }
                             }
                         }
-                    }
+                    }*/
                     else if (komenda.Equals("ADD_MAPPING"))//ADD_MAPPING adres vp vc comnID
                     {
 
@@ -210,6 +210,7 @@ namespace Clientix
 
         private void _CzyZyje(Object sprawdzanyy)//pod dany adres (jaqk istnieje) wysyłamy ATMPacket z wiadomością ZYJESZ
         {
+            bool wolne = false;
             int port = 0;
             Address sprawdzany = (Address)sprawdzanyy;
             //szukanie portu dla adresu
@@ -219,6 +220,22 @@ namespace Clientix
                 {
                     port = parent.routeList.ElementAt(i).port;
                     break;
+                }
+            }
+            for (int i = 0; i < parent.routeList.Count; i++)
+            {
+                if (sprawdzany.Equals(parent.routeList.ElementAt(i).destAddr))//szukamy na routelist zadanego adresu
+                {
+                    if (parent.routeList.ElementAt(i).bandwidth >= 2)//gdy przepustowość co najmniej 2 to ok
+                    {
+                        wolne = true;
+                        break;
+                    }
+                    else
+                    {
+                        wolne = false;
+                        break;
+                    }
                 }
             }
             if (port == 0)
@@ -263,7 +280,7 @@ namespace Clientix
                     Thread.Sleep(100);
                 }
                 //obsługa rezultatu, jeśli znaleziono to wyślij YES <adres>, jak nie to NO <adres>
-                if (znaleziono)
+                if (znaleziono && wolne)
                 {
                     wyslijSPacket(new SPacket(adresLRM, adresRC, "YES_ALIVE " + sprawdzany.ToString()));
                 }
