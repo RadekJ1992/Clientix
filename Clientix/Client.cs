@@ -427,7 +427,7 @@ namespace Clientix {
             if (isConnectedToControlCloud) {
                 if ((String)selectedClientBox.SelectedItem != null) {
                     String clientName = (String)selectedClientBox.SelectedItem;
-                    userDict.Add(clientName, new Address(0, 0, 0));
+                    if (!userDict.ContainsKey(clientName)) userDict.Add(clientName, new Address(0, 0, 0));
                     userToBeCalled = clientName;
                     List<String> _msgList = new List<String>();
                     _msgList.Add("REQ_CALL");
@@ -462,7 +462,7 @@ namespace Clientix {
 
                             } else {
                                 
-                                    VCArray.Remove(clientName);
+                                VCArray.Remove(clientName);
                                 VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
 
                             }
