@@ -400,7 +400,7 @@ namespace Clientix {
             }
             otherClients = temp;
             BindingSource bs = new BindingSource();
-            bs.DataSource = otherClients;
+            bs.DataSource = otherClients;  //i tak tego chuju nie przeczytasz
             this.Invoke((MethodInvoker)delegate() {
             selectedClientBox.DataSource = bs;
             });
