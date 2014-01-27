@@ -116,6 +116,7 @@ namespace Clientix {
         //słownik klientów, z którymi mamy połączenie i odpowiadających im komvinacji port,vpi,vci
         public Dictionary<String, PortVPIVCI> VCArray { get; set; }
 
+        public bool isNameSet;
         public Dictionary<PortVPIVCI, Address> AddrPortVPIVCIArray { get; set; }
 
         private Agentix agent; //agent zarządzania
@@ -154,6 +155,7 @@ namespace Clientix {
             bs.DataSource = speedList;
             clientSpeedBox.DataSource = bs;
             selectedClientBox.DataSource = otherClients;
+            isNameSet = false;
             AddrPortVPIVCIArray = new Dictionary<PortVPIVCI, Address>(new PortVPIVCIComparer());
         }
 
@@ -797,6 +799,17 @@ namespace Clientix {
                     }
                     SetText("Wysłano: " + _pck.getSrc() + ":" + _pck.getDest() + ":" + argsToShow + "\n");
                 }
+            }
+        }
+
+        private void Clientix_Load(object sender, EventArgs e) {
+            Clientix.ActiveForm.Text = "Clientix " + myAddress.ToString();
+        }
+
+        private void Clientix_Paint(object sender, PaintEventArgs e) {
+            if (myAddress != null && isNameSet != true) {
+                Clientix.ActiveForm.Text = "Clientix " + myAddress.ToString();
+                isNameSet = true;
             }
         }
     }
