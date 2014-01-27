@@ -33,11 +33,13 @@ namespace Clientix {
             public Address destAddr;
             public int bandwidth;
             public int port;
+            public List<int> VPIList;
 
-            public Route(Address addr, int band, int port) {
+            public Route(Address addr, int band, int port, List<int> VPIList) {
                 destAddr = addr;
                 bandwidth = band;
                 this.port = port;
+                this.VPIList = VPIList;
             }
         }
         public List<Route> routeList;
@@ -567,7 +569,14 @@ namespace Clientix {
                             if (int.TryParse(command[1], out port)) {
                                 if (Address.TryParse(command[2], out adr)) {
                                     if (int.TryParse(command[3], out band)) {
-                                        routeList.Add(new Route(adr,band,port));
+                                        List<int> _VPIList = new List<int>();
+                                        for (int i = 4; i < command.Length; i++) {
+                                            int vpi;
+                                            if (int.TryParse(command[3], out vpi)) {
+                                                _VPIList.Add(vpi);
+                                            }
+                                        }
+                                        routeList.Add(new Route(adr, band, port, _VPIList));
                                     } else SetText("Zły format danych\n");
                                 }else SetText("Zły format danych\n");
                             }else SetText("Zły format danych\n");
@@ -592,7 +601,7 @@ namespace Clientix {
         }
 
         private void saveConfig() {
-            if (username != null) {
+            if (myAddress != null) {
                 List<String> lines = new List<String>();
                 foreach (String client in VCArray.Keys) {
                     PortVPIVCI value;
@@ -603,10 +612,14 @@ namespace Clientix {
                     if (!VCArray.ContainsKey(client)) lines.Add("ADD_CLIENT " + client);
                 }
                 foreach (Route rt in routeList) {
-                    lines.Add("ADD_ROUTE " + rt.port + " " + rt.destAddr.ToString() + " " + rt.bandwidth);
+                    String _vpiString = String.Empty;
+                    foreach (int _vpi in rt.VPIList) {
+                        _vpiString += _vpi + " ";
+                    }
+                    lines.Add("ADD_ROUTE " + rt.port + " " + rt.destAddr.ToString() + " " + rt.bandwidth + " " + _vpiString);
                 }
-                System.IO.File.WriteAllLines("config" + username + ".txt", lines);
-                SetText("Zapisuję ustawienia do pliku config" + username + ".txt\n");
+                System.IO.File.WriteAllLines("config" + myAddress.ToString() + ".txt", lines);
+                SetText("Zapisuję ustawienia do pliku config" + myAddress.ToString() + ".txt\n");
             } else SetText("Ustal nazwę klienta!\n");
         }
 
