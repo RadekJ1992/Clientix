@@ -90,8 +90,6 @@ namespace Clientix {
 
         private string userToBeCalled;
 
-
-
         public PortVPIVCI lastAddedPortVPIVCI;
         // do odbierania
         private NetworkStream networkStream;
@@ -103,6 +101,7 @@ namespace Clientix {
         public bool isDisconnect;
         public bool isRunning { get; private set; }     //info czy klient chodzi - dla zarządcy
 
+        public int sentPackets;
         public bool isConnectedToControlCloud { get; private set; }
 
         private bool isClientNameSet;
@@ -114,7 +113,7 @@ namespace Clientix {
 
         private bool isFirstMouseEnter;
         //słownik klientów, z którymi mamy połączenie i odpowiadających im komvinacji port,vpi,vci
-        public Dictionary<String, PortVPIVCI> VCArray { get; set; }
+        public Dictionary<String, List<PortVPIVCI>> VCArray { get; set; }
 
         public bool isNameSet;
         public Dictionary<PortVPIVCI, Address> AddrPortVPIVCIArray { get; set; }
@@ -125,6 +124,7 @@ namespace Clientix {
 
         public Clientix() {
             isDisconnect = false;
+            sentPackets = 0;
             tempMid = 0;
             isClientNumberSet = false;
             InitializeComponent();
@@ -138,7 +138,7 @@ namespace Clientix {
             toolTip.ShowAlways = true;
             isConnectedToControlCloud = false;
             otherClients = new List<string>();
-            VCArray = new Dictionary<String, PortVPIVCI>();
+            VCArray = new Dictionary<String, List<PortVPIVCI>>();
             isFirstMouseEnter = true;
             isClientNameSet = false;
             isLoggedToManager = false;
@@ -165,13 +165,14 @@ namespace Clientix {
             else {
                 foreach (Packet.ATMPacket packet in packetsFromString) {
                     netStream = new NetworkStream(cloudSocket);
-                    PortVPIVCI temp;
+                    List<PortVPIVCI> temp;
                     if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
-                        SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + temp.port + ";" +
-                                            temp.VPI + ";" + temp.VCI + "] o treści: " + Packet.AAL.GetStringFromBytes(packet.payload)+"\n");
-                        packet.port = temp.port;
-                        packet.VPI = temp.VPI;
-                        packet.VCI = temp.VCI;
+                        int i = sentPackets % temp.Count;
+                        SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + temp[i].port + ";" +
+                                            temp[i].VPI + ";" + temp[i].VCI + "] o treści: " + Packet.AAL.GetStringFromBytes(packet.payload)+"\n");
+                        packet.port = temp[i].port;
+                        packet.VPI = temp[i].VPI;
+                        packet.VCI = temp[i].VCI;
                         BinaryFormatter bformatter = new BinaryFormatter();
                         bformatter.Serialize(netStream, packet);
                         netStream.Close();
@@ -276,9 +277,9 @@ namespace Clientix {
                 String tempName = "";
                 bool isNameFound = false;
                 foreach (String name in VCArray.Keys) {
-                    PortVPIVCI t;
+                    List<PortVPIVCI> t;
                     VCArray.TryGetValue(name, out t);
-                    if (t.port == temp.port && t.VPI == temp.VPI && t.VCI == temp.VCI) {
+                    if (t.Contains(temp)) {
                         tempName = name;
                         isNameFound = true;
                     }
@@ -449,26 +450,37 @@ namespace Clientix {
             } else {
                 if (otherClients.Count == 0) {
                     otherClients.Add(clientName);
-                    
-                        VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
-                    
+                    List<PortVPIVCI> temp = new List<PortVPIVCI>();
+                    if (VCArray.TryGetValue(clientName, out temp)) {
+                        temp.Add(new PortVPIVCI(port, vpi, vci));
+                        VCArray.Remove(clientName);
+                        VCArray.Add(clientName, temp);
+                    } else {
+                        temp.Add(new PortVPIVCI(port, vpi, vci));
+                        VCArray.Add(clientName, temp);
+                    }
                 }
                 try {
                     foreach (String name in otherClients) {
                         if (name == clientName) {
                             if (!VCArray.ContainsKey(clientName)) {
-
-                                VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                                List<PortVPIVCI> temp = new List<PortVPIVCI>();
+                                temp.Add(new PortVPIVCI(port, vpi, vci));
+                                VCArray.Add(clientName, temp);
 
                             } else {
-                                
-                                VCArray.Remove(clientName);
-                                VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
-
+                                List<PortVPIVCI> temp = new List<PortVPIVCI>();
+                                if (VCArray.TryGetValue(clientName, out temp)) {
+                                    temp.Add(new PortVPIVCI(port, vpi, vci));
+                                    VCArray.Remove(clientName);
+                                    VCArray.Add(clientName, temp);
+                                }
                             }
                         } else {
                             otherClients.Add(clientName);
-                            VCArray.Add(clientName, new PortVPIVCI(port, vpi, vci));
+                            List<PortVPIVCI> temp = new List<PortVPIVCI>();
+                            temp.Add(new PortVPIVCI(port, vpi, vci));
+                            VCArray.Add(clientName, temp);
                         }
                         //sprawdza przy okazji czy połączenie zostało nawiązane z aktualnie zaznaczonym klientem - jeśli tak - aktywuje możliwość wysyłania wiadomości
                         String tempSelCl = "";
@@ -480,7 +492,9 @@ namespace Clientix {
                             disconnectWithClient.Enabled = false;
                             sendText.Enabled = false;
                         }
-                        SetText("Połączenie z " + clientName + " zostało nawiązane!\n");
+                        List<PortVPIVCI> temp1 = new List<PortVPIVCI>();
+                        VCArray.TryGetValue(clientName, out temp1);
+                        SetText("Połączenie z " + clientName + " zostało nawiązane na porcie" + port + " VPI " + vpi + " VCI " + vci +". Przepustowość połączenia wynosi " + temp1.Count*2 + " Mbit/s\n");
                         this.Refresh();
                     }
                 } catch (InvalidOperationException) { } catch (ArgumentException) { }
@@ -494,17 +508,20 @@ namespace Clientix {
             } else {
                 PortVPIVCI temp = new PortVPIVCI(port, vpi, vci);
                 String tempName = "";
+                List<PortVPIVCI> tempList = new List<PortVPIVCI>();
                 foreach (String name in VCArray.Keys) {
-                    PortVPIVCI t;
+                    List<PortVPIVCI> t;
                     VCArray.TryGetValue(name, out t);
-                    if (t.port == temp.port && t.VPI == temp.VPI && t.VCI == temp.VCI) {
+                    if (t.Contains(temp)) {
                         tempName = name;
+                        t.Remove(temp);
+                        tempList = t;
                     }
                 }
-                        VCArray.Remove(tempName);
-                        disconnectWithClient.Enabled = false;
-                        sendText.Enabled = false;
-                        SetText("Połączenie z " + tempName + " zostało zerwane! \n");
+                VCArray.Remove(tempName);
+                disconnectWithClient.Enabled = false;
+                sendText.Enabled = false;
+                SetText("Połączenie z " + tempName + " zostało zerwane, przepustowość wynosi teraz "+ tempList.Count*2 +"Mbit/s\n");
             }
         }
 
@@ -547,13 +564,26 @@ namespace Clientix {
                         String[] command = line.Split(' ');
                         if (command[0] == "ADD_CONNECTION") {
                             try {
-                                VCArray.Add(command[1], new PortVPIVCI(int.Parse(command[2]), int.Parse(command[3]), int.Parse(command[4])));
+                                if (VCArray.ContainsKey(command[1])) {
+                                    List<PortVPIVCI> temp;
+                                    VCArray.TryGetValue(command[1], out temp);
+                                    temp.Add(new PortVPIVCI(int.Parse(command[2]), int.Parse(command[3]), int.Parse(command[4])));
+                                    VCArray.Remove(command[1]);
+                                    VCArray.Add(command[1], temp);
+                                    SetText("Dodaję połączenie z klientem " + command[1] + " na porcie "
+                                    + command[2] + " VPI " + command[3] + " VCI " + command[4] + "\n");
+                                } else {
+                                    List<PortVPIVCI> temp = new List<PortVPIVCI>();
+                                    temp.Add(new PortVPIVCI(int.Parse(command[2]), int.Parse(command[3]), int.Parse(command[4])));
+                                    VCArray.Add(command[1], temp);
+                                    SetText("Dodaję połączenie z klientem " + command[1] + " na porcie "
+                                    + command[2] + " VPI " + command[3] + " VCI " + command[4] + "\n");
+                                }
+
                                 if (!otherClients.Contains(command[1])) {
                                     otherClients.Add(command[1]);
                                     SetText("Dodaję klienta " + command[1] + "\n");
                                 }
-                                SetText("Dodaję połączenie z klientem " + command[1] + " na porcie " 
-                                    + command[2] + " VPI " + command[3] + " VCI " + command[4] + "\n");
                             } catch (IndexOutOfRangeException) {
                                 SetText("Komenda została niepoprawnie sformułowana (za mało parametrów)\n");
                             }
@@ -606,9 +636,12 @@ namespace Clientix {
             if (myAddress != null) {
                 List<String> lines = new List<String>();
                 foreach (String client in VCArray.Keys) {
-                    PortVPIVCI value;
-                    if (VCArray.TryGetValue(client, out value)) lines.Add("ADD_CONNECTION " + client +
-                                                                        " " + value.port + " " + value.VPI + " " + value.VCI);
+                    List<PortVPIVCI> value;
+                    if (VCArray.TryGetValue(client, out value)) {
+                        foreach(PortVPIVCI pvv in value) {
+                            lines.Add("ADD_CONNECTION " + client + " " + pvv.port + " " + pvv.VPI + " " + pvv.VCI);
+                        }
+                    }
                 }
                 foreach (String client in otherClients) {
                     if (!VCArray.ContainsKey(client)) lines.Add("ADD_CLIENT " + client);
