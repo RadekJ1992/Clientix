@@ -667,7 +667,7 @@ namespace Clientix {
         }
 
         private void Clientix_FormClosed(object sender, FormClosedEventArgs e) {
-            if (username != null) saveConfig();
+            //if (username != null) saveConfig();
         }
 
         private void setClientNumber_Click(object sender, EventArgs e) {
