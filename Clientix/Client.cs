@@ -66,6 +66,11 @@ namespace Clientix {
 
         public Address myAddress;
 
+
+        public Address lastCalledAddress;
+        public Dictionary<Address, int> addrCallIDDict;
+
+
         private Socket cloudSocket;
         public Socket managerSocket { get; private set; }
 
@@ -142,6 +147,7 @@ namespace Clientix {
             isFirstMouseEnter = true;
             isClientNameSet = false;
             isLoggedToManager = false;
+            addrCallIDDict = new Dictionary<Address, int>(new AddressComparer());
             routeList = new List<Route>();
             _whatToSendQueue = new Queue();
             whatToSendQueue = Queue.Synchronized(_whatToSendQueue);
@@ -765,6 +771,7 @@ namespace Clientix {
                         }
                         userDict.Remove(usrToEdit);
                         userDict.Add(usrToEdit, calledAddress);
+                        lastCalledAddress = calledAddress;
                         string temp = "REQ_CALL " + calledAddress.ToString();
                         SPacket pck = new SPacket(myAddress.ToString(), "0.0.2", temp);
                         whatToSendQueue.Enqueue(pck);
@@ -779,8 +786,27 @@ namespace Clientix {
                         SetText("Nie masz uprawnień do wykonania takiego połączenia!\n");
                         userToBeCalled = null;
                     } else if (receivedPacket.getParames()[0] == "CONN_EST") {
-                        Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
+                        //Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
+                        int callID = int.Parse(receivedPacket.getParames()[1]);
                         string conUsr = String.Empty;
+                        foreach (Address addr in addrCallIDDict.Keys) {
+                            int _cid;
+                            if (addrCallIDDict.TryGetValue(addr, out _cid)) {
+                                string _clientName = String.Empty;
+                                foreach (Address _addr in userDict.Values) {
+                                    if (_addr == addr) {
+                                        _clientName = userDict.FirstOrDefault(x => x.Value.Equals(addr)).Key;
+                                    }
+                                }
+                                foreach (PortVPIVCI pvv in AddrPortVPIVCIArray.Keys) {
+                                    Address _adr;
+                                    if (AddrPortVPIVCIArray.TryGetValue(pvv, out _adr)) {
+                                        connectionEstablished(_clientName, pvv.port, pvv.VPI, pvv.VCI);
+                                    }
+                                }
+                            }
+                        }
+                        /*
                         PortVPIVCI conPortVPIVCI = new PortVPIVCI();
                         foreach (string usr in userDict.Keys) {
                             Address _adr;
@@ -796,8 +822,9 @@ namespace Clientix {
                                 }
                             }
                         }
-                        connectionEstablished(conUsr, conPortVPIVCI.port, conPortVPIVCI.VPI, conPortVPIVCI.VCI);
-                        
+                        connectionEstablished(conUsr, conPortVPIVCI.port, conPortVPIVCI.VPI, conPortVPIVCI.VCI);*/
+                    } else if (receivedPacket.getParames()[0] == "CONN_NOEST") {
+                        SetText("Nie udało się nawiązać połączenia z adresem " + lastCalledAddress.ToString() + "\n");
                     } else {
                         LRM.OdczytajS(receivedPacket);
                     }
@@ -809,6 +836,10 @@ namespace Clientix {
 
         public void AddSingleEntry(Address address, int port, int vpi, int vci, int callID) {
             AddrPortVPIVCIArray.Add(new PortVPIVCI(port, vpi, vci), address);
+            if (addrCallIDDict.ContainsKey(lastCalledAddress)) {
+                addrCallIDDict.Remove(lastCalledAddress);
+                addrCallIDDict.Add(lastCalledAddress, callID);
+            } else addrCallIDDict.Add(lastCalledAddress, callID);
         }
 
         public void RemoveSingleEntry(Address address, int port, int vpi, int vci, int callID) {
