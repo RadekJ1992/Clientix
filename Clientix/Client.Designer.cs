@@ -60,6 +60,7 @@
             this.conToCloudButton = new System.Windows.Forms.Button();
             this.clientSpeedBox = new System.Windows.Forms.ComboBox();
             this.label9 = new System.Windows.Forms.Label();
+            this.chooseTextFile = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // enteredTextField
@@ -248,9 +249,9 @@
             // 
             // DisconnectButton
             // 
-            this.DisconnectButton.Location = new System.Drawing.Point(187, 251);
+            this.DisconnectButton.Location = new System.Drawing.Point(243, 251);
             this.DisconnectButton.Name = "DisconnectButton";
-            this.DisconnectButton.Size = new System.Drawing.Size(162, 26);
+            this.DisconnectButton.Size = new System.Drawing.Size(106, 26);
             this.DisconnectButton.TabIndex = 40;
             this.DisconnectButton.Text = "Rozłącz z siecią";
             this.DisconnectButton.UseVisualStyleBackColor = true;
@@ -260,9 +261,9 @@
             // 
             this.SaveConfigButton.Location = new System.Drawing.Point(15, 251);
             this.SaveConfigButton.Name = "SaveConfigButton";
-            this.SaveConfigButton.Size = new System.Drawing.Size(162, 26);
+            this.SaveConfigButton.Size = new System.Drawing.Size(109, 26);
             this.SaveConfigButton.TabIndex = 41;
-            this.SaveConfigButton.Text = "Zapisz konfigurację do pliku";
+            this.SaveConfigButton.Text = "Zapisz konfigurację";
             this.SaveConfigButton.UseVisualStyleBackColor = true;
             this.SaveConfigButton.Click += new System.EventHandler(this.SaveConfigButton_Click);
             // 
@@ -387,11 +388,22 @@
             this.label9.TabIndex = 53;
             this.label9.Text = "Prędkość w Mbit/s";
             // 
+            // chooseTextFile
+            // 
+            this.chooseTextFile.Location = new System.Drawing.Point(130, 251);
+            this.chooseTextFile.Name = "chooseTextFile";
+            this.chooseTextFile.Size = new System.Drawing.Size(107, 26);
+            this.chooseTextFile.TabIndex = 54;
+            this.chooseTextFile.Text = "Wczytaj config";
+            this.chooseTextFile.UseVisualStyleBackColor = true;
+            this.chooseTextFile.Click += new System.EventHandler(this.chooseTextFile_Click);
+            // 
             // Clientix
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(710, 285);
+            this.Controls.Add(this.chooseTextFile);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.clientSpeedBox);
             this.Controls.Add(this.controlCloudPortTextBox);
@@ -480,6 +492,7 @@
         private System.Windows.Forms.Button conToCloudButton;
         private System.Windows.Forms.ComboBox clientSpeedBox;
         private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Button chooseTextFile;
     }
 }
 

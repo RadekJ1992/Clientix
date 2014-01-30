@@ -894,6 +894,100 @@ namespace Clientix {
                 isNameSet = true;
             }
         }
+
+        private void chooseTextFile_Click(object sender, EventArgs e) {
+            string path;
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == DialogResult.OK) {
+                path = openFileDialog.FileName;
+                readConfig(path, true);
+            }
+        }
+
+        public void readConfig(String path, bool justToOverload) {
+            try {
+                //myAddress = Address.Parse(nAddr);
+                //isNodeAddressSet = true;
+                //NodeNetworkNumberField.Text = String.Empty + myAddress.network;
+                //NodeSubnetworkNumberField.Text = String.Empty + myAddress.subnet;
+                //NodeHostNumberField.Text = String.Empty + myAddress.host;
+                SetText("Wczytuje plik konfiguracyjny z " + path + "\n");
+                //String path = "config" + nAddr + ".txt";
+                using (StreamReader sr = new StreamReader(path)) {
+                    string[] lines = System.IO.File.ReadAllLines(path);
+                    foreach (String line in lines) {
+                        String[] command = line.Split(' ');
+                        if (command[0] == "ADD_CONNECTION") {
+                            try {
+                                if (VCArray.ContainsKey(command[1])) {
+                                    List<PortVPIVCI> temp;
+                                    VCArray.TryGetValue(command[1], out temp);
+                                    temp.Add(new PortVPIVCI(int.Parse(command[2]), int.Parse(command[3]), int.Parse(command[4])));
+                                    VCArray.Remove(command[1]);
+                                    VCArray.Add(command[1], temp);
+                                    SetText("Dodaję połączenie z klientem " + command[1] + " na porcie "
+                                    + command[2] + " VPI " + command[3] + " VCI " + command[4] + "\n");
+                                } else {
+                                    List<PortVPIVCI> temp = new List<PortVPIVCI>();
+                                    temp.Add(new PortVPIVCI(int.Parse(command[2]), int.Parse(command[3]), int.Parse(command[4])));
+                                    VCArray.Add(command[1], temp);
+                                    SetText("Dodaję połączenie z klientem " + command[1] + " na porcie "
+                                    + command[2] + " VPI " + command[3] + " VCI " + command[4] + "\n");
+                                }
+
+                                if (!otherClients.Contains(command[1])) {
+                                    otherClients.Add(command[1]);
+                                    SetText("Dodaję klienta " + command[1] + "\n");
+                                }
+                            } catch (IndexOutOfRangeException) {
+                                SetText("Komenda została niepoprawnie sformułowana (za mało parametrów)\n");
+                            }
+                        } else if (command[0] == "ADD_CLIENT") {
+                            try {
+                                otherClients.Add(command[1]);
+                                SetText("Dodaję klienta " + command[1] + "\n");
+                            } catch (IndexOutOfRangeException) {
+                                SetText("Komenda została niepoprawnie sformułowana (za mało parametrów)\n");
+                            }
+                        } else if (command[0] == "ADD_ROUTE") {
+                            Address adr;
+                            int port;
+                            int band;
+                            if (int.TryParse(command[1], out port)) {
+                                if (Address.TryParse(command[2], out adr)) {
+                                    if (int.TryParse(command[3], out band)) {
+                                        List<int> _VPIList = new List<int>();
+                                        for (int i = 4; i < command.Length; i++) {
+                                            int vpi;
+                                            if (int.TryParse(command[3], out vpi)) {
+                                                _VPIList.Add(vpi);
+                                            }
+                                        }
+                                        routeList.Add(new Route(adr, band, port, _VPIList));
+                                    } else SetText("Zły format danych\n");
+                                } else SetText("Zły format danych\n");
+                            } else SetText("Zły format danych\n");
+                        } else if (command[0] == "SET_ADDR") {
+                            try {
+                                myAddress = new Address(int.Parse(command[1]), int.Parse(command[2]), int.Parse(command[3]));
+                                isClientNumberSet = true;
+                                ClientNetworkNumberField.Text = String.Empty + myAddress.network;
+                                ClientSubnetworkNumberField.Text = String.Empty + myAddress.subnet;
+                                ClientHostNumberField.Text = String.Empty + myAddress.host;
+                                SetText("Ustalam adres klienta jako " + myAddress.ToString() + "\n");
+                            } catch {
+                                SetText("komenda ustalenia adresu została niepoprawnie sformułowana");
+                            }
+                        }
+                    }
+                }
+            } catch (Exception exc) {
+                SetText("Błąd podczas konfigurowania pliku konfiguracyjnego\n");
+                SetText(exc.Message + "\n");
+            }
+        }
+
+
     }
     class Agentix {
         StreamReader read = null;
