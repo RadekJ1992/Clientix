@@ -838,6 +838,11 @@ namespace Clientix {
                             _clientName = userDict.FirstOrDefault(x => x.Value.Equals(_addr)).Key;
                             }
                         }
+                        List<PortVPIVCI> _valuesToBreak = new List<PortVPIVCI>();
+                        VCArray.TryGetValue(_clientName, out _valuesToBreak);
+                        foreach (PortVPIVCI _pvv in _valuesToBreak) {
+                            connectionBroken(_pvv.port, _pvv.VPI, _pvv.VCI);
+                        }
                         SetText("Rozłączono z klientem " + _clientName + "\n");
                     }else if (receivedPacket.getParames()[0] == "CONN_NOEST") {
                         SetText("Nie udało się nawiązać połączenia z adresem " + lastCalledAddress.ToString() + "\n");
