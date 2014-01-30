@@ -204,7 +204,7 @@ namespace Clientix
                     else if (komenda.Equals("REQ_VPATHS"))
                     {
                         List<String> lista = new List<string>();
-                        lista.Add("REQ_VPATHS");
+                        lista.Add("RES_VPATHS");
                         for (int i = 0; i < parent.routeList.Count; i++)
                         {
                             String result = parent.routeList.ElementAt(i).destAddr.ToString();
