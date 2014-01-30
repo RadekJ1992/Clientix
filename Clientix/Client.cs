@@ -628,7 +628,7 @@ namespace Clientix {
                                         List<int> _VPIList = new List<int>();
                                         for (int i = 4; i < command.Length; i++) {
                                             int vpi;
-                                            if (int.TryParse(command[3], out vpi)) {
+                                            if (int.TryParse(command[i], out vpi)) {
                                                 _VPIList.Add(vpi);
                                             }
                                         }
@@ -959,7 +959,7 @@ namespace Clientix {
                                         List<int> _VPIList = new List<int>();
                                         for (int i = 4; i < command.Length; i++) {
                                             int vpi;
-                                            if (int.TryParse(command[3], out vpi)) {
+                                            if (int.TryParse(command[i], out vpi)) {
                                                 _VPIList.Add(vpi);
                                             }
                                         }
