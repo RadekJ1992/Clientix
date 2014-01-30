@@ -389,7 +389,7 @@ namespace Clientix {
                     } else SetText("Połącz z chmurą zarządania!\n");
                 } else this.SetText("Dawaj jakąś ludzką nazwę (dozwolone tylko litery, cyfry i znak '_')\n");
             } else {
-                SetText("Dawaj jakąś ludzką nazwę (dozwolone tylko litery, cyfry i znak '_')\n");
+                SetText("Najpierw połącz się z chmurą sterowania!\n");
                 isClientNameSet = false;
             }
         }
@@ -536,6 +536,24 @@ namespace Clientix {
                 agent.whoToDisconnect = ((String)selectedClientBox.SelectedItem);
                 agent.sendDisconnect = true;
                 SetText("Wysyłam żądanie zerwania połączenia z " + ((String)selectedClientBox.SelectedItem) + "\n");
+            }
+            if (isConnectedToControlCloud) {
+                if ((String)selectedClientBox.SelectedItem != null) {
+                    String clientName = (String)selectedClientBox.SelectedItem;
+                    if (userDict.ContainsKey(clientName)) {
+                        Address _adrToDiscon;
+                        userDict.TryGetValue(clientName, out _adrToDiscon);
+                        int _callIDToDiscon;
+                        addrCallIDDict.TryGetValue(_adrToDiscon, out _callIDToDiscon);
+                        List<String> _msgList = new List<String>();
+                        _msgList.Add("REQ_DISCONN");
+                        _msgList.Add(String.Empty + _callIDToDiscon);
+                        SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(0, 0, 2).ToString(), _msgList);
+                        whatToSendQueue.Enqueue(disconPacket);
+                    }
+                } else {
+                    SetText("Nie wybrano klienta\n");
+                }
             }
         }
 
@@ -806,24 +824,22 @@ namespace Clientix {
                                 }
                             }
                         }
-                        /*
-                        PortVPIVCI conPortVPIVCI = new PortVPIVCI();
-                        foreach (string usr in userDict.Keys) {
-                            Address _adr;
-                            userDict.TryGetValue(usr, out _adr);
-                            if (_adr.network == calledAddress.network && _adr.subnet == calledAddress.subnet && _adr.host == calledAddress.host) {
-                                conUsr = usr;
-                                foreach (PortVPIVCI pvv in AddrPortVPIVCIArray.Keys) {
-                                    Address _addr;
-                                    AddrPortVPIVCIArray.TryGetValue(pvv, out _addr);
-                                    if (_addr.network == calledAddress.network && _addr.subnet == calledAddress.subnet && _addr.host == calledAddress.host) {
-                                        conPortVPIVCI = pvv;
-                                    }
-                                }
+                    } else if (receivedPacket.getParames()[0] == "CONN_DISCONN") {
+                        int _disconCallID = int.Parse(receivedPacket.getParames()[1]);
+                        Address _adrToDiscon = new Address();
+                        foreach (int _callID in addrCallIDDict.Values) {
+                            if (_callID == _disconCallID) {
+                            _adrToDiscon = addrCallIDDict.FirstOrDefault(x => x.Value.Equals(_callID)).Key;
                             }
                         }
-                        connectionEstablished(conUsr, conPortVPIVCI.port, conPortVPIVCI.VPI, conPortVPIVCI.VCI);*/
-                    } else if (receivedPacket.getParames()[0] == "CONN_NOEST") {
+                        string _clientName = String.Empty;
+                        foreach (Address _addr in userDict.Values) {
+                            if (_addr == _adrToDiscon) {
+                            _clientName = userDict.FirstOrDefault(x => x.Value.Equals(_addr)).Key;
+                            }
+                        }
+                        SetText("Rozłączono z klientem " + _clientName + "\n");
+                    }else if (receivedPacket.getParames()[0] == "CONN_NOEST") {
                         SetText("Nie udało się nawiązać połączenia z adresem " + lastCalledAddress.ToString() + "\n");
                     } else {
                         LRM.OdczytajS(receivedPacket);
@@ -836,6 +852,7 @@ namespace Clientix {
 
         public void AddSingleEntry(Address address, int port, int vpi, int vci, int callID) {
             AddrPortVPIVCIArray.Add(new PortVPIVCI(port, vpi, vci), address);
+            SetText("Dodaję wpis w tablicy VCArray na port " + port + " VPI " + vpi + " VCI " + vci + "\n");
             if (addrCallIDDict.ContainsKey(lastCalledAddress)) {
                 addrCallIDDict.Remove(lastCalledAddress);
                 addrCallIDDict.Add(lastCalledAddress, callID);
@@ -844,6 +861,7 @@ namespace Clientix {
 
         public void RemoveSingleEntry(Address address, int port, int vpi, int vci, int callID) {
             AddrPortVPIVCIArray.Remove(new PortVPIVCI(port, vpi, vci));
+            SetText("Usuwam wpis w tablicy VCArray: port " + port + " VPI " + vpi + " VCI " + vci + "\n");
         }
         /// <summary>
         /// wątek wysyłający wiadomości do chmury
