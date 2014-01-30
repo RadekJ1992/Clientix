@@ -790,7 +790,7 @@ namespace Clientix {
                         userDict.Remove(usrToEdit);
                         userDict.Add(usrToEdit, calledAddress);
                         lastCalledAddress = calledAddress;
-                        string temp = "REQ_CALL " + calledAddress.ToString();
+                        string temp = "REQ_CALL " + calledAddress.ToString() + " " + (string)clientSpeedBox.SelectedItem.ToString();
                         SPacket pck = new SPacket(myAddress.ToString(), "0.0.2", temp);
                         whatToSendQueue.Enqueue(pck);
                     } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "0.0.1") {
