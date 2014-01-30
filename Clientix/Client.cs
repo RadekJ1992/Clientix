@@ -890,14 +890,7 @@ namespace Clientix {
         }
 
         private void Clientix_Load(object sender, EventArgs e) {
-            Clientix.ActiveForm.Text = "Clientix " + myAddress.ToString();
-        }
-
-        private void Clientix_Paint(object sender, PaintEventArgs e) {
-            if (myAddress != null && isNameSet != true) {
-                Clientix.ActiveForm.Text = "Clientix " + myAddress.ToString();
-                isNameSet = true;
-            }
+            
         }
 
         private void chooseTextFile_Click(object sender, EventArgs e) {
@@ -989,6 +982,15 @@ namespace Clientix {
             } catch (Exception exc) {
                 SetText("Błąd podczas konfigurowania pliku konfiguracyjnego\n");
                 SetText(exc.Message + "\n");
+            }
+        }
+
+        private void Clientix_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (myAddress != null && isNameSet != true)
+            {
+                Clientix.ActiveForm.Text = "Clientix " + myAddress.ToString();
+                isNameSet = true;
             }
         }
 
