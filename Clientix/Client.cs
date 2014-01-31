@@ -49,6 +49,8 @@ namespace Clientix {
         //kolejka pakietów odebranych z chmury
         public Queue<Packet.ATMPacket> queuedReceivedPackets = new Queue<Packet.ATMPacket>();
 
+        private Queue _packetsToSend;
+        public Queue packetsToSend;
         //dane chmury
         private IPAddress cloudAddress;        //Adres na którym chmura nasłuchuje
         private Int32 cloudPort;           //port chmury
@@ -79,7 +81,7 @@ namespace Clientix {
         public String username { get; set; }
 
         private Thread receiveThread;     //wątek służący do odbierania połączeń
-        //private Thread sendThread;        // analogicznie - do wysyłania
+        private Thread sendThread;        // analogicznie - do wysyłania
 
         //dane chmury
         private IPAddress controlCloudAddress;        //Adres na którym chmura nasłuchuje
@@ -148,6 +150,8 @@ namespace Clientix {
             isClientNameSet = false;
             isLoggedToManager = false;
             addrCallIDDict = new Dictionary<Address, int>(new AddressComparer());
+            _packetsToSend = new Queue();
+            packetsToSend = Queue.Synchronized(_packetsToSend);
             routeList = new List<Route>();
             _whatToSendQueue = new Queue();
             whatToSendQueue = Queue.Synchronized(_whatToSendQueue);
@@ -165,12 +169,46 @@ namespace Clientix {
             AddrPortVPIVCIArray = new Dictionary<PortVPIVCI, Address>(new PortVPIVCIComparer());
         }
 
+        private void sender()
+        {
+            while (isConnectedToCloud)
+            {
+                if (packetsToSend.Count != 0) { 
+                    ATMPacket packet = (ATMPacket)packetsToSend.Dequeue();
+                    if (packet.VPI == -1 && packet.VCI == -1)
+                    {
+                        netStream = new NetworkStream(cloudSocket);
+                        BinaryFormatter bformatter = new BinaryFormatter();
+                        bformatter.Serialize(netStream, packet);
+                        netStream.Close();
+                    }
+                    else
+                    {
+                        netStream = new NetworkStream(cloudSocket);
+                        List<PortVPIVCI> temp;
+                        if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp))
+                        {
+                            int i = sentPackets % temp.Count;
+                            SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + temp[i].port + ";" +
+                                                temp[i].VPI + ";" + temp[i].VCI + "] o treści: " + Packet.AAL.GetStringFromBytes(packet.payload) + "\n");
+                            packet.port = temp[i].port;
+                            packet.VPI = temp[i].VPI;
+                            packet.VCI = temp[i].VCI;
+                            BinaryFormatter bformatter = new BinaryFormatter();
+                            bformatter.Serialize(netStream, packet);
+                            netStream.Close();
+                        }
+                    }
+                }
+            }
+        }
+
         private void sendMessage(object sender, EventArgs e) {
             packetsFromString = Packet.AAL.getATMPackets(enteredTextField.Text);
             if (!isConnectedToCloud) log.AppendText("Nie jestem połączony z chmurą!!");
             else {
                 foreach (Packet.ATMPacket packet in packetsFromString) {
-                    netStream = new NetworkStream(cloudSocket);
+                    /*netStream = new NetworkStream(cloudSocket);
                     List<PortVPIVCI> temp;
                     if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
                         int i = sentPackets % temp.Count;
@@ -182,7 +220,8 @@ namespace Clientix {
                         BinaryFormatter bformatter = new BinaryFormatter();
                         bformatter.Serialize(netStream, packet);
                         netStream.Close();
-                    }
+                    }*/
+                    packetsToSend.Enqueue(packet);
                 }
             }
             enteredTextField.Clear();
@@ -218,6 +257,9 @@ namespace Clientix {
                             receiveThread = new Thread(this.receiver);
                             receiveThread.IsBackground = true;
                             receiveThread.Start();
+                            sendThread = new Thread(this.sender);
+                            sendThread.IsBackground = true;
+                            sendThread.Start();
                         } catch (SocketException) {
                             isConnectedToCloud = false;
                             log.AppendText("Błąd podczas łączenia się z chmurą\n");

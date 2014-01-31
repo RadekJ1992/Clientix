@@ -296,7 +296,7 @@ namespace Clientix
                 packiet.port = port;
                 packiet.VCI = -1;
                 packiet.VPI = -1;
-                parent.queuedReceivedPackets.Enqueue(packiet);
+                parent.packetsToSend.Enqueue(packiet);
             }
 
             //czekanie na odp 
