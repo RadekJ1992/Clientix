@@ -592,6 +592,7 @@ namespace Clientix {
                         _msgList.Add(String.Empty + _callIDToDiscon);
                         SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(0, 0, 2).ToString(), _msgList);
                         whatToSendQueue.Enqueue(disconPacket);
+                        sendText.Enabled = false;
                     }
                 } else {
                     SetText("Nie wybrano klienta\n");
