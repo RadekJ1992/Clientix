@@ -65,7 +65,7 @@ namespace Clientix
                     odpowiedz.port = zapytanie.port;
                     odpowiedz.VCI = -1;
                     odpowiedz.VPI = -1;
-                    parent.queuedReceivedPackets.Enqueue(odpowiedz);
+                    parent.packetsToSend.Enqueue(odpowiedz);
                 }
                 catch (Exception e)
                 {
