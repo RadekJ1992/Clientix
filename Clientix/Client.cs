@@ -49,6 +49,8 @@ namespace Clientix {
         //kolejka pakietów odebranych z chmury
         public Queue<Packet.ATMPacket> queuedReceivedPackets = new Queue<Packet.ATMPacket>();
 
+        private Queue _packetsToSend;
+        public Queue packetsToSend;
         //dane chmury
         private IPAddress cloudAddress;        //Adres na którym chmura nasłuchuje
         private Int32 cloudPort;           //port chmury
@@ -79,7 +81,7 @@ namespace Clientix {
         public String username { get; set; }
 
         private Thread receiveThread;     //wątek służący do odbierania połączeń
-        //private Thread sendThread;        // analogicznie - do wysyłania
+        private Thread sendThread;        // analogicznie - do wysyłania
 
         //dane chmury
         private IPAddress controlCloudAddress;        //Adres na którym chmura nasłuchuje
@@ -149,6 +151,8 @@ namespace Clientix {
             isClientNameSet = false;
             isLoggedToManager = false;
             addrCallIDDict = new Dictionary<Address, int>(new AddressComparer());
+            _packetsToSend = new Queue();
+            packetsToSend = Queue.Synchronized(_packetsToSend);
             routeList = new List<Route>();
             _whatToSendQueue = new Queue();
             whatToSendQueue = Queue.Synchronized(_whatToSendQueue);
@@ -166,12 +170,46 @@ namespace Clientix {
             AddrPortVPIVCIArray = new Dictionary<PortVPIVCI, Address>(new PortVPIVCIComparer());
         }
 
+        private void sender()
+        {
+            while (isConnectedToCloud)
+            {
+                if (packetsToSend.Count != 0) { 
+                    ATMPacket packet = (ATMPacket)packetsToSend.Dequeue();
+                    if (packet.VPI == -1 && packet.VCI == -1)
+                    {
+                        netStream = new NetworkStream(cloudSocket);
+                        BinaryFormatter bformatter = new BinaryFormatter();
+                        bformatter.Serialize(netStream, packet);
+                        netStream.Close();
+                    }
+                    else
+                    {
+                        netStream = new NetworkStream(cloudSocket);
+                        List<PortVPIVCI> temp;
+                        if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp))
+                        {
+                            int i = sentPackets % temp.Count;
+                            SetText("Wysyłam pakiet do " + (String)selectedClientBox.SelectedItem + " z ustawieniem [" + temp[i].port + ";" +
+                                                temp[i].VPI + ";" + temp[i].VCI + "] o treści: " + Packet.AAL.GetStringFromBytes(packet.payload) + "\n");
+                            packet.port = temp[i].port;
+                            packet.VPI = temp[i].VPI;
+                            packet.VCI = temp[i].VCI;
+                            BinaryFormatter bformatter = new BinaryFormatter();
+                            bformatter.Serialize(netStream, packet);
+                            netStream.Close();
+                        }
+                    }
+                }
+            }
+        }
+
         private void sendMessage(object sender, EventArgs e) {
             packetsFromString = Packet.AAL.getATMPackets(enteredTextField.Text);
             if (!isConnectedToCloud) log.AppendText("Nie jestem połączony z chmurą!!");
             else {
                 foreach (Packet.ATMPacket packet in packetsFromString) {
-                    netStream = new NetworkStream(cloudSocket);
+                    /*netStream = new NetworkStream(cloudSocket);
                     List<PortVPIVCI> temp;
                     if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp)) {
                         int i = sentPackets % temp.Count;
@@ -183,7 +221,8 @@ namespace Clientix {
                         BinaryFormatter bformatter = new BinaryFormatter();
                         bformatter.Serialize(netStream, packet);
                         netStream.Close();
-                    }
+                    }*/
+                    packetsToSend.Enqueue(packet);
                 }
             }
             enteredTextField.Clear();
@@ -219,6 +258,9 @@ namespace Clientix {
                             receiveThread = new Thread(this.receiver);
                             receiveThread.IsBackground = true;
                             receiveThread.Start();
+                            sendThread = new Thread(this.sender);
+                            sendThread.IsBackground = true;
+                            sendThread.Start();
                         } catch (SocketException) {
                             isConnectedToCloud = false;
                             log.AppendText("Błąd podczas łączenia się z chmurą\n");
@@ -551,6 +593,7 @@ namespace Clientix {
                         _msgList.Add(String.Empty + _callIDToDiscon);
                         SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(0, 0, 2).ToString(), _msgList);
                         whatToSendQueue.Enqueue(disconPacket);
+                        sendText.Enabled = false;
                     }
                 } else {
                     SetText("Nie wybrano klienta\n");
@@ -792,7 +835,7 @@ namespace Clientix {
                         userDict.Remove(usrToEdit);
                         userDict.Add(usrToEdit, calledAddress);
                         lastCalledAddress = calledAddress;
-                        string temp = "REQ_CALL " + calledAddress.ToString();
+                        string temp = "REQ_CALL " + calledAddress.ToString() + " " + (string)clientSpeedBox.SelectedItem.ToString();
                         SPacket pck = new SPacket(myAddress.ToString(), "0.0.2", temp);
                         whatToSendQueue.Enqueue(pck);
                     } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "0.0.1") {
@@ -900,14 +943,7 @@ namespace Clientix {
         }
 
         private void Clientix_Load(object sender, EventArgs e) {
-            Clientix.ActiveForm.Text = "Clientix " + myAddress.ToString();
-        }
-
-        private void Clientix_Paint(object sender, PaintEventArgs e) {
-            if (myAddress != null && isNameSet != true) {
-                Clientix.ActiveForm.Text = "Clientix " + myAddress.ToString();
-                isNameSet = true;
-            }
+            
         }
 
         private void chooseTextFile_Click(object sender, EventArgs e) {
@@ -999,6 +1035,15 @@ namespace Clientix {
             } catch (Exception exc) {
                 SetText("Błąd podczas konfigurowania pliku konfiguracyjnego\n");
                 SetText(exc.Message + "\n");
+            }
+        }
+
+        private void Clientix_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (myAddress != null && isNameSet != true)
+            {
+                Clientix.ActiveForm.Text = "Clientix " + myAddress.ToString();
+                isNameSet = true;
             }
         }
 

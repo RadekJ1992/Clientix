@@ -442,13 +442,10 @@
             this.Controls.Add(this.enteredTextField);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
-            this.MinimizeBox = false;
             this.MinimumSize = new System.Drawing.Size(601, 323);
             this.Name = "Clientix";
             this.Text = "Clientix";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Clientix_FormClosed);
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.Clientix_Paint);
-            this.MouseEnter += new System.EventHandler(this.selectedClientBox_MouseEnter);
             this.ResumeLayout(false);
             this.PerformLayout();
 
