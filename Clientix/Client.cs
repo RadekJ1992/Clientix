@@ -122,13 +122,14 @@ namespace Clientix {
 
         public bool isNameSet;
         public Dictionary<PortVPIVCI, Address> AddrPortVPIVCIArray { get; set; }
-
+        private int exceptionCount;
         private Agentix agent; //agent zarządzania
 
         private eLReMix LRM;
 
         public Clientix() {
             isDisconnect = false;
+            exceptionCount = 0;
             sentPackets = 0;
             tempMid = 0;
             isClientNumberSet = false;
@@ -744,6 +745,7 @@ namespace Clientix {
                         conToCloudButton.Text = "Rozłącz";
                         LRM = new eLReMix(this);
                         SetText("Połączono!\n");
+                        exceptionCount = 0;
                     } catch (SocketException) {
                         isConnectedToControlCloud = false;
                         SetText("Błąd podczas łączenia się z chmurą\n");
@@ -851,6 +853,14 @@ namespace Clientix {
                     }
                 } catch {
                     SetText("WUT");
+                    if (++exceptionCount == 5) {
+                        this.Invoke((MethodInvoker)delegate() {
+                            isConnectedToControlCloud = false;
+                            conToCloudButton.Text = "Połącz";
+                            SetText("Rozłączono!");
+                            if (controlCloudSocket != null) controlCloudSocket.Close();
+                        });
+                    }
                 }
             }
         }
