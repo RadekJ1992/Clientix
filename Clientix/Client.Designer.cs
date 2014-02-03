@@ -61,13 +61,14 @@
             this.clientSpeedBox = new System.Windows.Forms.ComboBox();
             this.label9 = new System.Windows.Forms.Label();
             this.chooseTextFile = new System.Windows.Forms.Button();
+            this.howToSendComboBox = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // enteredTextField
             // 
             this.enteredTextField.Location = new System.Drawing.Point(15, 25);
             this.enteredTextField.Name = "enteredTextField";
-            this.enteredTextField.Size = new System.Drawing.Size(334, 20);
+            this.enteredTextField.Size = new System.Drawing.Size(222, 20);
             this.enteredTextField.TabIndex = 0;
             this.enteredTextField.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.sendMessage_KeyPress);
             // 
@@ -144,7 +145,7 @@
             this.sendText.Name = "sendText";
             this.sendText.Size = new System.Drawing.Size(334, 35);
             this.sendText.TabIndex = 13;
-            this.sendText.Text = "Wyślij tekst do zaznaczonego klienta";
+            this.sendText.Text = "Wyślij tekst na wybranym PortVPIVCI";
             this.sendText.UseVisualStyleBackColor = true;
             this.sendText.Click += new System.EventHandler(this.sendMessage);
             // 
@@ -398,11 +399,21 @@
             this.chooseTextFile.UseVisualStyleBackColor = true;
             this.chooseTextFile.Click += new System.EventHandler(this.chooseTextFile_Click);
             // 
+            // howToSendComboBox
+            // 
+            this.howToSendComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.howToSendComboBox.FormattingEnabled = true;
+            this.howToSendComboBox.Location = new System.Drawing.Point(243, 24);
+            this.howToSendComboBox.Name = "howToSendComboBox";
+            this.howToSendComboBox.Size = new System.Drawing.Size(106, 21);
+            this.howToSendComboBox.TabIndex = 55;
+            // 
             // Clientix
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(710, 285);
+            this.Controls.Add(this.howToSendComboBox);
             this.Controls.Add(this.chooseTextFile);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.clientSpeedBox);
@@ -490,6 +501,7 @@
         private System.Windows.Forms.ComboBox clientSpeedBox;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Button chooseTextFile;
+        private System.Windows.Forms.ComboBox howToSendComboBox;
     }
 }
 

@@ -55,6 +55,8 @@ namespace Clientix {
         private IPAddress cloudAddress;        //Adres na którym chmura nasłuchuje
         private Int32 cloudPort;           //port chmury
 
+        private Dictionary<String, PortVPIVCI> howToSendDict;
+
 
         private Dictionary<string, Address> userDict;
         //dane zarządcy
@@ -146,6 +148,7 @@ namespace Clientix {
             toolTip.ShowAlways = true;
             isConnectedToControlCloud = false;
             otherClients = new List<string>();
+            howToSendDict = new Dictionary<string, PortVPIVCI>();
             VCArray = new Dictionary<String, List<PortVPIVCI>>();
             isFirstMouseEnter = true;
             isClientNameSet = false;
@@ -185,6 +188,7 @@ namespace Clientix {
                     }
                     else
                     {
+                        /*
                         netStream = new NetworkStream(cloudSocket);
                         List<PortVPIVCI> temp;
                         if (VCArray.TryGetValue((String)selectedClientBox.SelectedItem, out temp))
@@ -199,6 +203,19 @@ namespace Clientix {
                             bformatter.Serialize(netStream, packet);
                             netStream.Close();
                         }
+                         */
+                        netStream = new NetworkStream(cloudSocket);
+                        PortVPIVCI _pvv;
+                        if (howToSendDict.TryGetValue((string)howToSendComboBox.SelectedItem, out _pvv)) {
+                            SetText("Wysyłam pakiet z ustawieniem [" + _pvv.port + ";" +
+                                                _pvv.VPI + ";" + _pvv.VCI + "] o treści: " + Packet.AAL.GetStringFromBytes(packet.payload) + "\n");
+                        }
+                        packet.port = _pvv.port;
+                        packet.VPI = _pvv.VPI;
+                        packet.VCI = _pvv.VCI;
+                        BinaryFormatter bformatter = new BinaryFormatter();
+                        bformatter.Serialize(netStream, packet);
+                        netStream.Close();
                     }
                 }
             }
@@ -915,6 +932,13 @@ namespace Clientix {
                 addrCallIDDict.Remove(lastCalledAddress);
                 addrCallIDDict.Add(lastCalledAddress, callID);
             } else addrCallIDDict.Add(lastCalledAddress, callID);
+            String _str = "[ " + port + " , " + vpi + " , " + vci + " ]";
+            howToSendDict.Add(_str, new PortVPIVCI(port, vpi, vci));
+            BindingSource bs = new BindingSource();
+            bs.DataSource = howToSendDict.Keys;
+            this.Invoke((MethodInvoker)delegate() {
+                howToSendComboBox.DataSource = bs;
+            });
         }
 
         public void RemoveSingleEntry(Address address, int port, int vpi, int vci, int callID) {
