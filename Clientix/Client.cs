@@ -932,6 +932,7 @@ namespace Clientix {
                             _msg.Add("ACK");
                             _msg.Add(receivedPacket.getParames()[1]);
                             _msg.Add(receivedPacket.getParames()[2]);
+                            _msg.Add(receivedPacket.getParames()[3]);
                             SPacket _pck = new SPacket(myAddress.ToString(), "1.0.1", _msg);
                             whatToSendQueue.Enqueue(_pck);
                             lastCalledUser = receivedPacket.getParames()[1];
@@ -940,6 +941,7 @@ namespace Clientix {
                             _msg.Add("NCK");
                             _msg.Add(receivedPacket.getParames()[1]);
                             _msg.Add(receivedPacket.getParames()[2]);
+                            _msg.Add(receivedPacket.getParames()[3]);
                             SPacket _pck = new SPacket(myAddress.ToString(), "1.0.1", _msg);
                             whatToSendQueue.Enqueue(_pck);
                         }
