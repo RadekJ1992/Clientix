@@ -68,7 +68,7 @@
             // 
             this.enteredTextField.Location = new System.Drawing.Point(15, 25);
             this.enteredTextField.Name = "enteredTextField";
-            this.enteredTextField.Size = new System.Drawing.Size(222, 20);
+            this.enteredTextField.Size = new System.Drawing.Size(199, 20);
             this.enteredTextField.TabIndex = 0;
             this.enteredTextField.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.sendMessage_KeyPress);
             // 
@@ -403,9 +403,9 @@
             // 
             this.howToSendComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.howToSendComboBox.FormattingEnabled = true;
-            this.howToSendComboBox.Location = new System.Drawing.Point(243, 24);
+            this.howToSendComboBox.Location = new System.Drawing.Point(220, 24);
             this.howToSendComboBox.Name = "howToSendComboBox";
-            this.howToSendComboBox.Size = new System.Drawing.Size(106, 21);
+            this.howToSendComboBox.Size = new System.Drawing.Size(129, 21);
             this.howToSendComboBox.TabIndex = 55;
             // 
             // Clientix

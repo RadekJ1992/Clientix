@@ -136,8 +136,7 @@ namespace Clientix
                             parent.AddSingleEntry(a1, p1, vp1, vc1, connID);
                             ZajmijZasob(a1);
                             nowakomenda = "MSG zadanie ADD wykonane";
-                        }
-                        else
+                        } else 
                         {
                             nowakomenda = "ERROR ZŁA LICZBA PARAMETRÓW W ADD";
                         }

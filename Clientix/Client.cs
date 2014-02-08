@@ -56,8 +56,6 @@ namespace Clientix {
         private Int32 cloudPort;           //port chmury
 
         private Dictionary<String, PortVPIVCI> howToSendDict;
-
-
         private Dictionary<string, Address> userDict;
         //dane zarządcy
         private IPAddress managerAddress;        //Adres na którym chmura nasłuchuje
@@ -70,10 +68,12 @@ namespace Clientix {
 
         public Address myAddress;
 
-
+        public string lastCalledUser;
         public Address lastCalledAddress;
         public Dictionary<Address, int> addrCallIDDict;
 
+
+        private Dictionary<string, List<PortVPIVCI>> NEWVCARRAY;
 
         private Socket cloudSocket;
         public Socket managerSocket { get; private set; }
@@ -150,6 +150,7 @@ namespace Clientix {
             otherClients = new List<string>();
             howToSendDict = new Dictionary<string, PortVPIVCI>();
             VCArray = new Dictionary<String, List<PortVPIVCI>>();
+            NEWVCARRAY = new Dictionary<string, List<PortVPIVCI>>();
             isFirstMouseEnter = true;
             isClientNameSet = false;
             isLoggedToManager = false;
@@ -204,18 +205,20 @@ namespace Clientix {
                             netStream.Close();
                         }
                          */
-                        netStream = new NetworkStream(cloudSocket);
-                        PortVPIVCI _pvv;
-                        if (howToSendDict.TryGetValue((string)howToSendComboBox.SelectedItem, out _pvv)) {
-                            SetText("Wysyłam pakiet z ustawieniem [" + _pvv.port + ";" +
-                                                _pvv.VPI + ";" + _pvv.VCI + "] o treści: " + Packet.AAL.GetStringFromBytes(packet.payload) + "\n");
-                        }
-                        packet.port = _pvv.port;
-                        packet.VPI = _pvv.VPI;
-                        packet.VCI = _pvv.VCI;
-                        BinaryFormatter bformatter = new BinaryFormatter();
-                        bformatter.Serialize(netStream, packet);
-                        netStream.Close();
+                        this.Invoke((MethodInvoker)delegate() {
+                            netStream = new NetworkStream(cloudSocket);
+                            PortVPIVCI _pvv;
+                            if (howToSendDict.TryGetValue((string)howToSendComboBox.SelectedItem, out _pvv)) {
+                                SetText("Wysyłam pakiet z ustawieniem [" + _pvv.port + ";" +
+                                                    _pvv.VPI + ";" + _pvv.VCI + "] o treści: " + Packet.AAL.GetStringFromBytes(packet.payload) + "\n");
+                            }
+                            packet.port = _pvv.port;
+                            packet.VPI = _pvv.VPI;
+                            packet.VCI = _pvv.VCI;
+                            BinaryFormatter bformatter = new BinaryFormatter();
+                            bformatter.Serialize(netStream, packet);
+                            netStream.Close();
+                        });
                     }
                 }
             }
@@ -343,14 +346,21 @@ namespace Clientix {
                 String tempName = "";
                 bool isNameFound = false;
                 foreach (String name in VCArray.Keys) {
-                    List<PortVPIVCI> t;
+                    List<PortVPIVCI> t = new List<PortVPIVCI>();
                     VCArray.TryGetValue(name, out t);
                     if (t.Contains(temp)) {
                         tempName = name;
                         isNameFound = true;
                     }
                 }
-
+                foreach (String name in NEWVCARRAY.Keys) {
+                    List<PortVPIVCI> t = new List<PortVPIVCI>();
+                    NEWVCARRAY.TryGetValue(name, out t);
+                    if (t.Contains(temp)) {
+                        tempName = name;
+                        isNameFound = true;
+                    }
+                }
                 if (receivedPacket.VCI == -1 && receivedPacket.VPI == -1) {
                     LRM.OdczytajATM(receivedPacket);
                 } else {
@@ -441,9 +451,9 @@ namespace Clientix {
                         username = usernameField.Text;
                         List<String> _msgList = new List<String>();
                         _msgList.Add("LOGIN");
-                        _msgList.Add(username);
                         _msgList.Add(myAddress.ToString());
-                        SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 1).ToString(), _msgList);
+                        _msgList.Add(username);
+                        SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(1, 0, 2).ToString(), _msgList);
                         whatToSendQueue.Enqueue(welcomePacket);
                         SetText("Nazwa klienta ustawiona jako " + username + "\n");
                     } else SetText("Połącz z chmurą zarządania!\n");
@@ -459,7 +469,7 @@ namespace Clientix {
             if (isConnectedToControlCloud) {
                 List<String> _msgList = new List<String>();
                 _msgList.Add("REQ_CLIENTS");
-                SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 1).ToString(), _msgList);
+                SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(1, 0, 2).ToString(), _msgList);
                 whatToSendQueue.Enqueue(welcomePacket);
                 SetText("Wysłano żądanie pobrania nazwy klientów\n");
             }
@@ -500,7 +510,7 @@ namespace Clientix {
                     _msgList.Add("REQ_CALL");
                     _msgList.Add(userToBeCalled);
                     _msgList.Add((string)clientSpeedBox.SelectedItem.ToString());
-                    SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(0, 0, 1).ToString(), _msgList);
+                    SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(1, 0, 1).ToString(), _msgList);
                     whatToSendQueue.Enqueue(welcomePacket);
                 } else {
                     SetText("Nie wybrano klienta\n");
@@ -832,16 +842,18 @@ namespace Clientix {
                     //_msg = reader.ReadLine();
                     SetText("Odczytano:\n" + receivedPacket.ToString() + "\n");
 
-                    if (receivedPacket.getParames()[0] == "OK" && receivedPacket.getSrc() == "0.0.1") {
+                    if (receivedPacket.getParames()[0] == "OK" && receivedPacket.getSrc() == "1.0.1") {
                         isClientNameSet = true;
-                    } else if (receivedPacket.getParames()[0] == "NAME_TAKEN" && receivedPacket.getSrc() == "0.0.1") {
+                        SetText("Nazwa użytkownika została zaakceptowana przez sieć\n");
+                    } else if (receivedPacket.getParames()[0] == "NAME_TAKEN" && receivedPacket.getSrc() == "1.0.1") {
                         SetText("Nazwa użytkownika zajęta, wybierz inną!;");
                         username = null;
-                    } else if (receivedPacket.getParames()[0] == "CLIENTS" && receivedPacket.getSrc() == "0.0.1") {
+                        isClientNameSet = false;
+                    } else if (receivedPacket.getParames()[0] == "CLIENTS" /*&& receivedPacket.getSrc() == "0.0.1"*/) {
                         List<string> _temp = receivedPacket.getParames();
                         _temp.Remove("CLIENTS");
                         setOtherClients(_temp);
-                    } else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "0.0.1") {
+                    /*} else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "1.0.1") {
                         Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
                         string usrToEdit = String.Empty;
                         foreach (string usr in userDict.Keys) {
@@ -854,8 +866,8 @@ namespace Clientix {
                         lastCalledAddress = calledAddress;
                         string temp = "REQ_CALL " + calledAddress.ToString() + " " + (string)clientSpeedBox.SelectedItem.ToString();
                         SPacket pck = new SPacket(myAddress.ToString(), "0.0.2", temp);
-                        whatToSendQueue.Enqueue(pck);
-                    } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "0.0.1") {
+                        whatToSendQueue.Enqueue(pck);*/
+                    } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "1.0.1") {
                         string usrToEdit = String.Empty;
                         foreach (string usr in userDict.Keys) {
                             Address _adr;
@@ -867,6 +879,7 @@ namespace Clientix {
                         userToBeCalled = null;
                     } else if (receivedPacket.getParames()[0] == "CONN_EST") {
                         //Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
+                        SetText("Zestawiono połączenie!\n");
                         int callID = int.Parse(receivedPacket.getParames()[1]);
                         string conUsr = String.Empty;
                         foreach (Address addr in addrCallIDDict.Keys) {
@@ -907,7 +920,29 @@ namespace Clientix {
                         }
                         SetText("Rozłączono z klientem " + _clientName + "\n");
                     }else if (receivedPacket.getParames()[0] == "CONN_NOEST") {
-                        SetText("Nie udało się nawiązać połączenia z adresem " + lastCalledAddress.ToString() + "\n");
+                        if (lastCalledUser != null) SetText("Nie udało się nawiązać połączenia z " + lastCalledUser + "\n");
+                        else SetText("Nie udało się nawiązać połączenia\n");
+                    } else if (receivedPacket.getParames()[0] == "CALLING") {
+                        string message = "Dzwoni " + receivedPacket.getParames()[1] + " i chce mieć prędkość " + receivedPacket.getParames()[2] + "\n" +
+                                            "Akceptujesz?";
+                        string caption = "RING RING";
+                        var result = MessageBox.Show(message, caption, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                        if (result == DialogResult.Yes) {
+                            List<String> _msg = new List<String>();
+                            _msg.Add("ACK");
+                            _msg.Add(receivedPacket.getParames()[1]);
+                            _msg.Add(receivedPacket.getParames()[2]);
+                            SPacket _pck = new SPacket(myAddress.ToString(), "1.0.1", _msg);
+                            whatToSendQueue.Enqueue(_pck);
+                            lastCalledUser = receivedPacket.getParames()[1];
+                        } else {
+                            List<String> _msg = new List<String>();
+                            _msg.Add("NCK");
+                            _msg.Add(receivedPacket.getParames()[1]);
+                            _msg.Add(receivedPacket.getParames()[2]);
+                            SPacket _pck = new SPacket(myAddress.ToString(), "1.0.1", _msg);
+                            whatToSendQueue.Enqueue(_pck);
+                        }
                     } else {
                         LRM.OdczytajS(receivedPacket);
                     }
@@ -926,24 +961,47 @@ namespace Clientix {
         }
 
         public void AddSingleEntry(Address address, int port, int vpi, int vci, int callID) {
+            
+            List<PortVPIVCI> _pvvList = new List<PortVPIVCI>();
+            if (NEWVCARRAY.ContainsKey(lastCalledUser)) {
+                NEWVCARRAY.TryGetValue(lastCalledUser, out _pvvList);
+            }
+            try {
+                NEWVCARRAY.Remove(lastCalledUser);
+            } catch { }
+            _pvvList.Add(new PortVPIVCI(port, vpi, vci));
+            NEWVCARRAY.Add(lastCalledUser, _pvvList);
+
             AddrPortVPIVCIArray.Add(new PortVPIVCI(port, vpi, vci), address);
             SetText("Dodaję wpis w tablicy VCArray na port " + port + " VPI " + vpi + " VCI " + vci + "\n");
-            if (addrCallIDDict.ContainsKey(lastCalledAddress)) {
-                addrCallIDDict.Remove(lastCalledAddress);
-                addrCallIDDict.Add(lastCalledAddress, callID);
-            } else addrCallIDDict.Add(lastCalledAddress, callID);
-            String _str = "[ " + port + " , " + vpi + " , " + vci + " ]";
+            if (lastCalledAddress != null) {
+                if (addrCallIDDict.ContainsKey(lastCalledAddress)) {
+                    addrCallIDDict.Remove(lastCalledAddress);
+                    addrCallIDDict.Add(lastCalledAddress, callID);
+                } else addrCallIDDict.Add(lastCalledAddress, callID);
+            }
+            String _str;
+            if (lastCalledUser != null) _str = "[ " + port + " , " + vpi + " , " + vci + " ] : " + lastCalledUser;
+            else _str = "[ " + port + " , " + vpi + " , " + vci + " ]";
             howToSendDict.Add(_str, new PortVPIVCI(port, vpi, vci));
             BindingSource bs = new BindingSource();
             bs.DataSource = howToSendDict.Keys;
             this.Invoke((MethodInvoker)delegate() {
                 howToSendComboBox.DataSource = bs;
+                sendText.Enabled = true;
             });
         }
 
         public void RemoveSingleEntry(Address address, int port, int vpi, int vci, int callID) {
             AddrPortVPIVCIArray.Remove(new PortVPIVCI(port, vpi, vci));
             SetText("Usuwam wpis w tablicy VCArray: port " + port + " VPI " + vpi + " VCI " + vci + "\n");
+            String _str = "[ " + port + " , " + vpi + " , " + vci + " ]";
+            howToSendDict.Remove(_str);
+            BindingSource bs = new BindingSource();
+            bs.DataSource = howToSendDict.Keys;
+            this.Invoke((MethodInvoker)delegate() {
+                howToSendComboBox.DataSource = bs;
+            });
         }
         /// <summary>
         /// wątek wysyłający wiadomości do chmury
