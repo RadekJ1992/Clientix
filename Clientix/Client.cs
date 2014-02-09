@@ -133,6 +133,7 @@ namespace Clientix {
 
         public Clientix() {
             isDisconnect = false;
+            lastCalledUser = String.Empty;
             exceptionCount = 0;
             sentPackets = 0;
             tempMid = 0;
@@ -206,9 +207,11 @@ namespace Clientix {
                         }
                          */
                         this.Invoke((MethodInvoker)delegate() {
+                        
                             netStream = new NetworkStream(cloudSocket);
                             PortVPIVCI _pvv;
-                            if (howToSendDict.TryGetValue((string)howToSendComboBox.SelectedItem, out _pvv)) {
+                            if (howToSendDict.TryGetValue((string)howToSendComboBox.SelectedItem, out _pvv))
+                            {
                                 SetText("Wysyłam pakiet z ustawieniem [" + _pvv.port + ";" +
                                                     _pvv.VPI + ";" + _pvv.VCI + "] o treści: " + Packet.AAL.GetStringFromBytes(packet.payload) + "\n");
                             }
@@ -281,6 +284,7 @@ namespace Clientix {
                             sendThread = new Thread(this.sender);
                             sendThread.IsBackground = true;
                             sendThread.Start();
+                            sendText.Enabled = true;
                         } catch (SocketException) {
                             isConnectedToCloud = false;
                             log.AppendText("Błąd podczas łączenia się z chmurą\n");
@@ -511,7 +515,7 @@ namespace Clientix {
                     _msgList.Add("REQ_CALL");
                     _msgList.Add(userToBeCalled);
                     _msgList.Add((string)clientSpeedBox.SelectedItem.ToString());
-                    SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(1, 0, 1).ToString(), _msgList);
+                    SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(1, 0, 2).ToString(), _msgList);
                     whatToSendQueue.Enqueue(welcomePacket);
                 } else {
                     SetText("Nie wybrano klienta\n");
@@ -614,7 +618,7 @@ namespace Clientix {
                     List<String> _msgList = new List<String>();
                     _msgList.Add("REQ_DISCONN");
                     _msgList.Add(clientName);
-                    SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(1, 0, 1).ToString(), _msgList);
+                    SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(1, 0, 2).ToString(), _msgList);
                     whatToSendQueue.Enqueue(disconPacket);
                     sendText.Enabled = false;
                     /*if (userDict.ContainsKey(clientName)) {
@@ -849,10 +853,10 @@ namespace Clientix {
                     //_msg = reader.ReadLine();
                     SetText("Odczytano:\n" + receivedPacket.ToString() + "\n");
 
-                    if (receivedPacket.getParames()[0] == "OK" && receivedPacket.getSrc() == "1.0.1") {
+                    if (receivedPacket.getParames()[0] == "OK" && receivedPacket.getSrc() == "1.0.2") {
                         isClientNameSet = true;
                         SetText("Nazwa użytkownika została zaakceptowana przez sieć\n");
-                    } else if (receivedPacket.getParames()[0] == "NAME_TAKEN" && receivedPacket.getSrc() == "1.0.1") {
+                    } else if (receivedPacket.getParames()[0] == "NAME_TAKEN" && receivedPacket.getSrc() == "1.0.2") {
                         SetText("Nazwa użytkownika zajęta, wybierz inną!;");
                         username = null;
                         isClientNameSet = false;
@@ -874,7 +878,7 @@ namespace Clientix {
                         string temp = "REQ_CALL " + calledAddress.ToString() + " " + (string)clientSpeedBox.SelectedItem.ToString();
                         SPacket pck = new SPacket(myAddress.ToString(), "0.0.2", temp);
                         whatToSendQueue.Enqueue(pck);*/
-                    } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "1.0.1") {
+                    } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "1.0.2") {
                         string usrToEdit = String.Empty;
                         foreach (string usr in userDict.Keys) {
                             Address _adr;
@@ -940,7 +944,7 @@ namespace Clientix {
                             _msg.Add(receivedPacket.getParames()[1]);
                             _msg.Add(receivedPacket.getParames()[2]);
                             _msg.Add(receivedPacket.getParames()[3]);
-                            SPacket _pck = new SPacket(myAddress.ToString(), "1.0.1", _msg);
+                            SPacket _pck = new SPacket(myAddress.ToString(), "1.0.2", _msg);
                             whatToSendQueue.Enqueue(_pck);
                             lastCalledUser = receivedPacket.getParames()[1];
                         } else {
@@ -949,7 +953,7 @@ namespace Clientix {
                             _msg.Add(receivedPacket.getParames()[1]);
                             _msg.Add(receivedPacket.getParames()[2]);
                             _msg.Add(receivedPacket.getParames()[3]);
-                            SPacket _pck = new SPacket(myAddress.ToString(), "1.0.1", _msg);
+                            SPacket _pck = new SPacket(myAddress.ToString(), "1.0.2", _msg);
                             whatToSendQueue.Enqueue(_pck);
                         }
                     } else {

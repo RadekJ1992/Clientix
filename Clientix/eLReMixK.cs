@@ -156,7 +156,6 @@ namespace Clientix
                             connID = 1;// int.Parse(p.ElementAt(4));
 
                           
-*/
 
                             int p1 = AddressToPort(a1);
                             parent.RemoveSingleEntry(a1, p1, vp1, vc1, connID);
