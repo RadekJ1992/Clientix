@@ -225,6 +225,7 @@ namespace Clientix {
                         });
                     }
                 }
+                Thread.Sleep(100);
             }
         }
 
@@ -420,6 +421,7 @@ namespace Clientix {
                     }
                 }
                 //networkStream.Close();
+                Thread.Sleep(100);
                 receiver();
             } catch (Exception e){
                 if (isDisconnect) { 
@@ -921,7 +923,8 @@ namespace Clientix {
                             }
                         }
                     } else if (receivedPacket.getParames()[0] == "CONN_DISCONN") {
-                        int _disconCallID = int.Parse(receivedPacket.getParames()[1]);
+                        SetText("Rozłączono połączenie");
+                        /*int _disconCallID = int.Parse(receivedPacket.getParames()[1]);
                         Address _adrToDiscon = new Address();
                         foreach (int _callID in addrCallIDDict.Values) {
                             if (_callID == _disconCallID) {
@@ -939,7 +942,7 @@ namespace Clientix {
                         foreach (PortVPIVCI _pvv in _valuesToBreak) {
                             connectionBroken(_pvv.port, _pvv.VPI, _pvv.VCI);
                         }
-                        SetText("Rozłączono z klientem " + _clientName + "\n");
+                        SetText("Rozłączono z klientem " + _clientName + "\n");*/
                     }else if (receivedPacket.getParames()[0] == "CONN_NOEST") {
                         if (lastCalledUser != null) SetText("Nie udało się nawiązać połączenia z " + lastCalledUser + "\n");
                         else SetText("Nie udało się nawiązać połączenia\n");
@@ -1032,12 +1035,28 @@ namespace Clientix {
             AddrPortVPIVCIArray.Remove(new PortVPIVCI(port, vpi, vci));
             SetText("Usuwam wpis w tablicy VCArray: port " + port + " VPI " + vpi + " VCI " + vci + "\n");
             String _str = "[ " + port + " , " + vpi + " , " + vci + " ]";
-            howToSendDict.Remove(_str);
-            BindingSource bs = new BindingSource();
-            bs.DataSource = howToSendDict.Keys;
-            this.Invoke((MethodInvoker)delegate() {
-                howToSendComboBox.DataSource = bs;
-            });
+            string _strToDelete = String.Empty;
+            foreach (string _shown in howToSendDict.Keys)
+            {
+                if (_shown.Contains(_str))
+                {
+                    _strToDelete = _shown;
+                }
+            }
+            try
+            {
+                howToSendDict.Remove(_strToDelete);
+                BindingSource bs = new BindingSource();
+                bs.DataSource = howToSendDict.Keys;
+                this.Invoke((MethodInvoker)delegate()
+                {
+                    howToSendComboBox.DataSource = bs;
+                });
+            }
+            catch
+            {
+                SetText("Nie usunąłem wpisu z comboBoxa :<\n");
+            }
         }
         /// <summary>
         /// wątek wysyłający wiadomości do chmury
