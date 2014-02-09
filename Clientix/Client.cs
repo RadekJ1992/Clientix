@@ -570,7 +570,7 @@ namespace Clientix {
                             disconnectWithClient.Enabled = true;
                             sendText.Enabled = true;
                         } else {
-                            disconnectWithClient.Enabled = false;
+                            disconnectWithClient.Enabled = true;
                             sendText.Enabled = false;
                         }
                         List<PortVPIVCI> temp1 = new List<PortVPIVCI>();
@@ -600,7 +600,7 @@ namespace Clientix {
                     }
                 }
                 VCArray.Remove(tempName);
-                disconnectWithClient.Enabled = false;
+                disconnectWithClient.Enabled = true;
                 sendText.Enabled = false;
                 SetText("Połączenie z " + tempName + " zostało zerwane, przepustowość wynosi teraz "+ tempList.Count*2 +"Mbit/s\n");
             }
@@ -645,7 +645,7 @@ namespace Clientix {
                 disconnectWithClient.Enabled = true;
                 sendText.Enabled = true;
             } else {
-                disconnectWithClient.Enabled = false;
+                disconnectWithClient.Enabled = true;
                 sendText.Enabled = false;
             }
         }
@@ -864,20 +864,17 @@ namespace Clientix {
                         List<string> _temp = receivedPacket.getParames();
                         _temp.Remove("CLIENTS");
                         setOtherClients(_temp);
-                    /*} else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "1.0.1") {
-                        Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
-                        string usrToEdit = String.Empty;
-                        foreach (string usr in userDict.Keys) {
-                            Address _adr;
-                            userDict.TryGetValue(usr, out _adr);
-                            if (_adr.network == 0 && _adr.subnet == 0 && _adr.host == 0) usrToEdit = usr;
+                    } else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "1.0.2") {
+                        try
+                        {
+                            SetText("Sieć zaczęła proces zestawiania połączenia z " + receivedPacket.getParames()[1] + ". Trwa oczekiwanie na akceptację drugiej strony\n");
                         }
-                        userDict.Remove(usrToEdit);
-                        userDict.Add(usrToEdit, calledAddress);
-                        lastCalledAddress = calledAddress;
-                        string temp = "REQ_CALL " + calledAddress.ToString() + " " + (string)clientSpeedBox.SelectedItem.ToString();
-                        SPacket pck = new SPacket(myAddress.ToString(), "0.0.2", temp);
-                        whatToSendQueue.Enqueue(pck);*/
+                        catch
+                        {
+                            SetText("Sieć zaczęła proces zestawiania połączenia. Trwa oczekiwanie na akceptację drugiej strony\n");
+                        }
+                    } else if (receivedPacket.getParames()[0] == "ACK" && receivedPacket.getSrc() == "1.0.2") {
+                        SetText("Użytkownik zaakceptował żądanie połączenia. Sieć zaczyna je zestawiać\n");
                     } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "1.0.2") {
                         string usrToEdit = String.Empty;
                         foreach (string usr in userDict.Keys) {
