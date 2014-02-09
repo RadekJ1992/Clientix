@@ -249,16 +249,17 @@ namespace Clientix
         }
         #endregion
         #region sprawdzanie połączenia między Nodixami
-        public void CzyZyjeRun(Tuple<Address,int> argus)//dla każdego zapytania o sprawność łącza od RC odpalany nowy wątek tą metodą
+        public void CzyZyjeRun(Tuple<Address,int> arguss)//dla każdego zapytania o sprawność łącza od RC odpalany nowy wątek tą metodą
         {
             Thread ss = new Thread(new ParameterizedThreadStart(_CzyZyje));
             ss.IsBackground = true;
-            ss.Start(argus);
+            ss.Start(arguss);
         }
 
 
-        private void _CzyZyje(Tuple<Address,int> argus)//pod dany adres (jaqk istnieje) wysyłamy ATMPacket z wiadomością ZYJESZ
+        private void _CzyZyje(Object argg)//pod dany adres (jaqk istnieje) wysyłamy ATMPacket z wiadomością ZYJESZ
         {
+            Tuple<Address, int> argus = (Tuple<Address, int>)(argg);
             bool wolne = false;
             int port = 0;
             Address sprawdzany = argus.Item1;
