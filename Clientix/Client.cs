@@ -72,7 +72,7 @@ namespace Clientix {
         public Address lastCalledAddress;
         public Dictionary<Address, int> addrCallIDDict;
 
-
+        private Dictionary<string, List<int>> NEWCONNIDARRAY;
         private Dictionary<string, List<PortVPIVCI>> NEWVCARRAY;
 
         private Socket cloudSocket;
@@ -152,6 +152,7 @@ namespace Clientix {
             howToSendDict = new Dictionary<string, PortVPIVCI>();
             VCArray = new Dictionary<String, List<PortVPIVCI>>();
             NEWVCARRAY = new Dictionary<string, List<PortVPIVCI>>();
+            NEWCONNIDARRAY = new Dictionary<string, List<int>>();
             isFirstMouseEnter = true;
             isClientNameSet = false;
             isLoggedToManager = false;
@@ -615,12 +616,24 @@ namespace Clientix {
             if (isConnectedToControlCloud) {
                 if ((String)selectedClientBox.SelectedItem != null) {
                     String clientName = (String)selectedClientBox.SelectedItem;
-                    List<String> _msgList = new List<String>();
+                    List<int> _connidList = new List<int>();
+                    NEWCONNIDARRAY.TryGetValue(lastCalledUser, out _connidList);
+                    foreach (int _cid in _connidList)
+                    {
+                        List<String> _msgList = new List<String>();
+                        _msgList.Add("REQ_DISCONN");
+                        _msgList.Add(String.Empty + _cid);
+                        SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(1, 0, 2).ToString(), _msgList);
+                        whatToSendQueue.Enqueue(disconPacket);
+                    }
+                    /*List<String> _msgList = new List<String>();
                     _msgList.Add("REQ_DISCONN");
                     _msgList.Add(clientName);
                     SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(1, 0, 2).ToString(), _msgList);
                     whatToSendQueue.Enqueue(disconPacket);
                     sendText.Enabled = false;
+                    */
+
                     /*if (userDict.ContainsKey(clientName)) {
                         Address _adrToDiscon;
                         userDict.TryGetValue(clientName, out _adrToDiscon);
@@ -981,6 +994,19 @@ namespace Clientix {
             } catch { }
             _pvvList.Add(new PortVPIVCI(port, vpi, vci));
             NEWVCARRAY.Add(lastCalledUser, _pvvList);
+
+            List<int> _connidList = new List<int>();
+            if (NEWCONNIDARRAY.ContainsKey(lastCalledUser))
+            {
+                NEWCONNIDARRAY.TryGetValue(lastCalledUser, out _connidList);
+            }
+            try
+            {
+                NEWCONNIDARRAY.Remove(lastCalledUser);
+            }
+            catch { }
+            _connidList.Add(callID);
+            NEWCONNIDARRAY.Add(lastCalledUser, _connidList);
 
             AddrPortVPIVCIArray.Add(new PortVPIVCI(port, vpi, vci), address);
             SetText("Dodaję wpis w tablicy VCArray na port " + port + " VPI " + vpi + " VCI " + vci + "\n");
