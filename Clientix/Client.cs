@@ -179,7 +179,7 @@ namespace Clientix {
             (new Thread(new ThreadStart(() => {
                 Thread.Sleep(1500);
                 if (connect) {
-                    connectToCloud(this, new EventArgs());
+                    //connectToCloud(this, new EventArgs());
                     conToCloudButton_Click(this, new EventArgs());
                     connect = false;
                 }
