@@ -111,6 +111,8 @@ namespace Clientix {
         public bool isRunning { get; private set; }     //info czy klient chodzi - dla zarządcy
 
         public int sentPackets;
+
+        public bool connect = false;
         public bool isConnectedToControlCloud { get; private set; }
 
         private bool isClientNameSet;
@@ -172,6 +174,14 @@ namespace Clientix {
             selectedClientBox.DataSource = otherClients;
             isNameSet = false;
             AddrPortVPIVCIArray = new Dictionary<PortVPIVCI, Address>(new PortVPIVCIComparer());
+            (new Thread(new ThreadStart(() => {
+                Thread.Sleep(1500);
+                if (connect) {
+                    connectToCloud(this, new EventArgs());
+                    conToCloudButton_Click(this, new EventArgs());
+                    connect = false;
+                }
+            }))).Start();
         }
 
         private void sender()
