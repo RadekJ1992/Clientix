@@ -145,7 +145,7 @@ namespace Clientix
                     else if (komenda.Equals("DEL_MAPPING"))//DEL_MAPPING adres vp vc comnID
                     {
 
-                        if (pakiet.getParames().Count == 5)
+                        if (pakiet.getParames().Count == 4)
                         {
                             List<String> p = pakiet.getParames();
                             int vp1, vc1, connID;
@@ -153,7 +153,9 @@ namespace Clientix
                             a1 = Address.Parse(p.ElementAt(1));
                             vp1 = int.Parse(p.ElementAt(2));
                             vc1 = int.Parse(p.ElementAt(3));
-                            connID = int.Parse(p.ElementAt(4));
+                            connID = 1;// int.Parse(p.ElementAt(4));
+
+                          
 
                             int p1 = AddressToPort(a1);
                             parent.RemoveSingleEntry(a1, p1, vp1, vc1, connID);

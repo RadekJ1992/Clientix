@@ -239,7 +239,6 @@
             // 
             // disconnectWithClient
             // 
-            this.disconnectWithClient.Enabled = false;
             this.disconnectWithClient.Location = new System.Drawing.Point(477, 233);
             this.disconnectWithClient.Name = "disconnectWithClient";
             this.disconnectWithClient.Size = new System.Drawing.Size(100, 44);

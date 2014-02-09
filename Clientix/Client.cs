@@ -72,7 +72,7 @@ namespace Clientix {
         public Address lastCalledAddress;
         public Dictionary<Address, int> addrCallIDDict;
 
-
+        private Dictionary<string, List<int>> NEWCONNIDARRAY;
         private Dictionary<string, List<PortVPIVCI>> NEWVCARRAY;
 
         private Socket cloudSocket;
@@ -135,6 +135,7 @@ namespace Clientix {
 
         public Clientix() {
             isDisconnect = false;
+            lastCalledUser = String.Empty;
             exceptionCount = 0;
             sentPackets = 0;
             tempMid = 0;
@@ -153,6 +154,7 @@ namespace Clientix {
             howToSendDict = new Dictionary<string, PortVPIVCI>();
             VCArray = new Dictionary<String, List<PortVPIVCI>>();
             NEWVCARRAY = new Dictionary<string, List<PortVPIVCI>>();
+            NEWCONNIDARRAY = new Dictionary<string, List<int>>();
             isFirstMouseEnter = true;
             isClientNameSet = false;
             isLoggedToManager = false;
@@ -216,9 +218,11 @@ namespace Clientix {
                         }
                          */
                         this.Invoke((MethodInvoker)delegate() {
+                        
                             netStream = new NetworkStream(cloudSocket);
                             PortVPIVCI _pvv;
-                            if (howToSendDict.TryGetValue((string)howToSendComboBox.SelectedItem, out _pvv)) {
+                            if (howToSendDict.TryGetValue((string)howToSendComboBox.SelectedItem, out _pvv))
+                            {
                                 SetText("Wysyłam pakiet z ustawieniem [" + _pvv.port + ";" +
                                                     _pvv.VPI + ";" + _pvv.VCI + "] o treści: " + Packet.AAL.GetStringFromBytes(packet.payload) + "\n");
                             }
@@ -231,6 +235,7 @@ namespace Clientix {
                         });
                     }
                 }
+                Thread.Sleep(100);
             }
         }
 
@@ -291,6 +296,7 @@ namespace Clientix {
                             sendThread = new Thread(this.sender);
                             sendThread.IsBackground = true;
                             sendThread.Start();
+                            sendText.Enabled = true;
                         } catch (SocketException) {
                             isConnectedToCloud = false;
                             log.AppendText("Błąd podczas łączenia się z chmurą\n");
@@ -425,6 +431,7 @@ namespace Clientix {
                     }
                 }
                 //networkStream.Close();
+                Thread.Sleep(100);
                 receiver();
             } catch (Exception e){
                 if (isDisconnect) { 
@@ -521,7 +528,7 @@ namespace Clientix {
                     _msgList.Add("REQ_CALL");
                     _msgList.Add(userToBeCalled);
                     _msgList.Add((string)clientSpeedBox.SelectedItem.ToString());
-                    SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(1, 0, 1).ToString(), _msgList);
+                    SPacket welcomePacket = new SPacket(myAddress.ToString(), new Address(1, 0, 2).ToString(), _msgList);
                     whatToSendQueue.Enqueue(welcomePacket);
                 } else {
                     SetText("Nie wybrano klienta\n");
@@ -576,7 +583,7 @@ namespace Clientix {
                             disconnectWithClient.Enabled = true;
                             sendText.Enabled = true;
                         } else {
-                            disconnectWithClient.Enabled = false;
+                            disconnectWithClient.Enabled = true;
                             sendText.Enabled = false;
                         }
                         List<PortVPIVCI> temp1 = new List<PortVPIVCI>();
@@ -606,7 +613,7 @@ namespace Clientix {
                     }
                 }
                 VCArray.Remove(tempName);
-                disconnectWithClient.Enabled = false;
+                disconnectWithClient.Enabled = true;
                 sendText.Enabled = false;
                 SetText("Połączenie z " + tempName + " zostało zerwane, przepustowość wynosi teraz "+ tempList.Count*2 +"Mbit/s\n");
             }
@@ -621,12 +628,24 @@ namespace Clientix {
             if (isConnectedToControlCloud) {
                 if ((String)selectedClientBox.SelectedItem != null) {
                     String clientName = (String)selectedClientBox.SelectedItem;
-                    List<String> _msgList = new List<String>();
+                    List<int> _connidList = new List<int>();
+                    NEWCONNIDARRAY.TryGetValue(lastCalledUser, out _connidList);
+                    foreach (int _cid in _connidList)
+                    {
+                        List<String> _msgList = new List<String>();
+                        _msgList.Add("REQ_DISCONN");
+                        _msgList.Add(String.Empty + _cid);
+                        SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(1, 0, 2).ToString(), _msgList);
+                        whatToSendQueue.Enqueue(disconPacket);
+                    }
+                    /*List<String> _msgList = new List<String>();
                     _msgList.Add("REQ_DISCONN");
                     _msgList.Add(clientName);
-                    SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(1, 0, 1).ToString(), _msgList);
+                    SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(1, 0, 2).ToString(), _msgList);
                     whatToSendQueue.Enqueue(disconPacket);
                     sendText.Enabled = false;
+                    */
+
                     /*if (userDict.ContainsKey(clientName)) {
                         Address _adrToDiscon;
                         userDict.TryGetValue(clientName, out _adrToDiscon);
@@ -651,7 +670,7 @@ namespace Clientix {
                 disconnectWithClient.Enabled = true;
                 sendText.Enabled = true;
             } else {
-                disconnectWithClient.Enabled = false;
+                disconnectWithClient.Enabled = true;
                 sendText.Enabled = false;
             }
         }
@@ -859,10 +878,10 @@ namespace Clientix {
                     //_msg = reader.ReadLine();
                     SetText("Odczytano:\n" + receivedPacket.ToString() + "\n");
 
-                    if (receivedPacket.getParames()[0] == "OK" && receivedPacket.getSrc() == "1.0.1") {
+                    if (receivedPacket.getParames()[0] == "OK" && receivedPacket.getSrc() == "1.0.2") {
                         isClientNameSet = true;
                         SetText("Nazwa użytkownika została zaakceptowana przez sieć\n");
-                    } else if (receivedPacket.getParames()[0] == "NAME_TAKEN" && receivedPacket.getSrc() == "1.0.1") {
+                    } else if (receivedPacket.getParames()[0] == "NAME_TAKEN" && receivedPacket.getSrc() == "1.0.2") {
                         SetText("Nazwa użytkownika zajęta, wybierz inną!;");
                         username = null;
                         isClientNameSet = false;
@@ -870,21 +889,18 @@ namespace Clientix {
                         List<string> _temp = receivedPacket.getParames();
                         _temp.Remove("CLIENTS");
                         setOtherClients(_temp);
-                    /*} else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "1.0.1") {
-                        Address calledAddress = Address.Parse(receivedPacket.getParames()[1]);
-                        string usrToEdit = String.Empty;
-                        foreach (string usr in userDict.Keys) {
-                            Address _adr;
-                            userDict.TryGetValue(usr, out _adr);
-                            if (_adr.network == 0 && _adr.subnet == 0 && _adr.host == 0) usrToEdit = usr;
+                    } else if (receivedPacket.getParames()[0] == "YES" && receivedPacket.getSrc() == "1.0.2") {
+                        try
+                        {
+                            SetText("Sieć zaczęła proces zestawiania połączenia z " + receivedPacket.getParames()[1] + ". Trwa oczekiwanie na akceptację drugiej strony\n");
                         }
-                        userDict.Remove(usrToEdit);
-                        userDict.Add(usrToEdit, calledAddress);
-                        lastCalledAddress = calledAddress;
-                        string temp = "REQ_CALL " + calledAddress.ToString() + " " + (string)clientSpeedBox.SelectedItem.ToString();
-                        SPacket pck = new SPacket(myAddress.ToString(), "0.0.2", temp);
-                        whatToSendQueue.Enqueue(pck);*/
-                    } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "1.0.1") {
+                        catch
+                        {
+                            SetText("Sieć zaczęła proces zestawiania połączenia. Trwa oczekiwanie na akceptację drugiej strony\n");
+                        }
+                    } else if (receivedPacket.getParames()[0] == "ACK" && receivedPacket.getSrc() == "1.0.2") {
+                        SetText("Użytkownik zaakceptował żądanie połączenia. Sieć zaczyna je zestawiać\n");
+                    } else if (receivedPacket.getParames()[0] == "NO" && receivedPacket.getSrc() == "1.0.2") {
                         string usrToEdit = String.Empty;
                         foreach (string usr in userDict.Keys) {
                             Address _adr;
@@ -917,7 +933,8 @@ namespace Clientix {
                             }
                         }
                     } else if (receivedPacket.getParames()[0] == "CONN_DISCONN") {
-                        int _disconCallID = int.Parse(receivedPacket.getParames()[1]);
+                        SetText("Rozłączono połączenie");
+                        /*int _disconCallID = int.Parse(receivedPacket.getParames()[1]);
                         Address _adrToDiscon = new Address();
                         foreach (int _callID in addrCallIDDict.Values) {
                             if (_callID == _disconCallID) {
@@ -935,7 +952,7 @@ namespace Clientix {
                         foreach (PortVPIVCI _pvv in _valuesToBreak) {
                             connectionBroken(_pvv.port, _pvv.VPI, _pvv.VCI);
                         }
-                        SetText("Rozłączono z klientem " + _clientName + "\n");
+                        SetText("Rozłączono z klientem " + _clientName + "\n");*/
                     }else if (receivedPacket.getParames()[0] == "CONN_NOEST") {
                         if (lastCalledUser != null) SetText("Nie udało się nawiązać połączenia z " + lastCalledUser + "\n");
                         else SetText("Nie udało się nawiązać połączenia\n");
@@ -950,7 +967,7 @@ namespace Clientix {
                             _msg.Add(receivedPacket.getParames()[1]);
                             _msg.Add(receivedPacket.getParames()[2]);
                             _msg.Add(receivedPacket.getParames()[3]);
-                            SPacket _pck = new SPacket(myAddress.ToString(), "1.0.1", _msg);
+                            SPacket _pck = new SPacket(myAddress.ToString(), "1.0.2", _msg);
                             whatToSendQueue.Enqueue(_pck);
                             lastCalledUser = receivedPacket.getParames()[1];
                         } else {
@@ -959,7 +976,7 @@ namespace Clientix {
                             _msg.Add(receivedPacket.getParames()[1]);
                             _msg.Add(receivedPacket.getParames()[2]);
                             _msg.Add(receivedPacket.getParames()[3]);
-                            SPacket _pck = new SPacket(myAddress.ToString(), "1.0.1", _msg);
+                            SPacket _pck = new SPacket(myAddress.ToString(), "1.0.2", _msg);
                             whatToSendQueue.Enqueue(_pck);
                         }
                     } else {
@@ -991,6 +1008,19 @@ namespace Clientix {
             _pvvList.Add(new PortVPIVCI(port, vpi, vci));
             NEWVCARRAY.Add(lastCalledUser, _pvvList);
 
+            List<int> _connidList = new List<int>();
+            if (NEWCONNIDARRAY.ContainsKey(lastCalledUser))
+            {
+                NEWCONNIDARRAY.TryGetValue(lastCalledUser, out _connidList);
+            }
+            try
+            {
+                NEWCONNIDARRAY.Remove(lastCalledUser);
+            }
+            catch { }
+            _connidList.Add(callID);
+            NEWCONNIDARRAY.Add(lastCalledUser, _connidList);
+
             AddrPortVPIVCIArray.Add(new PortVPIVCI(port, vpi, vci), address);
             SetText("Dodaję wpis w tablicy VCArray na port " + port + " VPI " + vpi + " VCI " + vci + "\n");
             if (lastCalledAddress != null) {
@@ -1015,12 +1045,28 @@ namespace Clientix {
             AddrPortVPIVCIArray.Remove(new PortVPIVCI(port, vpi, vci));
             SetText("Usuwam wpis w tablicy VCArray: port " + port + " VPI " + vpi + " VCI " + vci + "\n");
             String _str = "[ " + port + " , " + vpi + " , " + vci + " ]";
-            howToSendDict.Remove(_str);
-            BindingSource bs = new BindingSource();
-            bs.DataSource = howToSendDict.Keys;
-            this.Invoke((MethodInvoker)delegate() {
-                howToSendComboBox.DataSource = bs;
-            });
+            string _strToDelete = String.Empty;
+            foreach (string _shown in howToSendDict.Keys)
+            {
+                if (_shown.Contains(_str))
+                {
+                    _strToDelete = _shown;
+                }
+            }
+            try
+            {
+                howToSendDict.Remove(_strToDelete);
+                BindingSource bs = new BindingSource();
+                bs.DataSource = howToSendDict.Keys;
+                this.Invoke((MethodInvoker)delegate()
+                {
+                    howToSendComboBox.DataSource = bs;
+                });
+            }
+            catch
+            {
+                SetText("Nie usunąłem wpisu z comboBoxa :<\n");
+            }
         }
         /// <summary>
         /// wątek wysyłający wiadomości do chmury
