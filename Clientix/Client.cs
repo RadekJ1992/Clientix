@@ -506,6 +506,7 @@ namespace Clientix {
                     String clientName = (String)selectedClientBox.SelectedItem;
                     if (!userDict.ContainsKey(clientName)) userDict.Add(clientName, new Address(0, 0, 0));
                     userToBeCalled = clientName;
+                    lastCalledUser = clientName;
                     List<String> _msgList = new List<String>();
                     _msgList.Add("REQ_CALL");
                     _msgList.Add(userToBeCalled);
@@ -610,7 +611,13 @@ namespace Clientix {
             if (isConnectedToControlCloud) {
                 if ((String)selectedClientBox.SelectedItem != null) {
                     String clientName = (String)selectedClientBox.SelectedItem;
-                    if (userDict.ContainsKey(clientName)) {
+                    List<String> _msgList = new List<String>();
+                    _msgList.Add("REQ_DISCONN");
+                    _msgList.Add(clientName);
+                    SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(1, 0, 1).ToString(), _msgList);
+                    whatToSendQueue.Enqueue(disconPacket);
+                    sendText.Enabled = false;
+                    /*if (userDict.ContainsKey(clientName)) {
                         Address _adrToDiscon;
                         userDict.TryGetValue(clientName, out _adrToDiscon);
                         int _callIDToDiscon;
@@ -621,7 +628,7 @@ namespace Clientix {
                         SPacket disconPacket = new SPacket(myAddress.ToString(), new Address(0, 0, 2).ToString(), _msgList);
                         whatToSendQueue.Enqueue(disconPacket);
                         sendText.Enabled = false;
-                    }
+                    }*/
                 } else {
                     SetText("Nie wybrano klienta\n");
                 }
